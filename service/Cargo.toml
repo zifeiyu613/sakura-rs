@@ -1,0 +1,15 @@
+[package]
+name = "service"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sqlx = {workspace = true, features = ["runtime-tokio", "mysql", "chrono"]}
+
+tokio = {workspace = true, features = ["full"]}
+
+chrono = {workspace = true}
+
+once_cell = {workspace = true}
+
+sakura-entity={path="../entity"}

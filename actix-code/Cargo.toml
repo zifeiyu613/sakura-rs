@@ -1,0 +1,23 @@
+[package]
+name = "actix-code"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = {workspace = true}
+
+serde = {workspace = true, features = ["derive"]}
+serde_json = {workspace = true}
+futures = {workspace = true}
+
+chrono = {workspace = true}
+chrono-tz = "0.10.0"
+
+
+tracing = {workspace = true}
+tracing-subscriber = {workspace = true, features = ["chrono"]}
+
+middleware = {path = "../middleware"}
+service = {path = "../service"}
+sakura-entity = {path = "../entity"}
+rand = "0.8.5"

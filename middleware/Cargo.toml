@@ -1,0 +1,17 @@
+[package]
+name = "middleware"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = {workspace = true}
+actix-http = {workspace = true}
+actix-multipart = "0.7.2"
+
+futures = {workspace = true}
+
+serde = {workspace = true, features = ["derive"]}
+serde_json = {workspace = true}
+serde_urlencoded = { workspace = true }
+futures-util = "0.3"
+uuid = { version = "1.0", features = ["v4"] }

@@ -1,0 +1,53 @@
+use std::collections::HashMap;
+use actix_web::web;
+use serde::{Deserialize, Serialize};
+
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct FormData {
+
+    pub data: Option<serde_json::Value>,
+    // pub data: Option<web::Json<AppData1>>,
+
+    #[serde(skip)]
+    pub files: HashMap<String, web::Bytes>,
+
+    pub fields: Option<HashMap<String, String>>,
+
+}
+
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct AppData1 {
+    pub version: Option<String>,
+    pub source: Option<String>,
+    pub device: Option<String>,
+    pub package_name: Option<String>,
+    pub imei: Option<String>,
+    pub device_code: Option<String>,
+    pub platform: Option<String>,
+    pub uid: Option<i64>,
+    pub token: Option<String>,
+    pub channel: Option<String>,
+    pub sub_channel: Option<String>,
+    pub network: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct RequestContext {
+    pub trace_id: String,
+    pub user_id: Option<String>,
+    pub token: Option<String>,
+    pub client_ip: Option<String>,
+    pub user_agent: Option<String>,
+    pub form_data: Option<FormData>,  // 新增字段
+}
+
+impl RequestContext {
+    pub fn new() -> Self {
+        Self {
+            trace_id: uuid::Uuid::new_v4().to_string(),
+            ..Default::default()
+        }
+    }
+}

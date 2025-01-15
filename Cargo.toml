@@ -1,0 +1,50 @@
+[package]
+name = "sakura"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+resolver = "2"
+members = [
+    ".", "actix-code", "api", "core", "entity", "middleware", "service"
+]
+
+
+[workspace.dependencies]
+actix-web = {version = "4"}
+actix-http = "3"
+futures = "0.3"
+
+sea-orm = "1.1"
+sea-orm-migration = "1.1"
+
+sqlx = {version = "0.8", features = ["runtime-tokio", "mysql", "chrono"]}
+tokio = {version = "1", features = ["full"]}
+
+once_cell = {version = "1"}
+
+chrono = {version = "0.4", features = ["serde"]}
+
+serde = "1"
+serde_json = "1"
+serde_urlencoded = "0.7.1"
+
+dotenvy = "0.15"
+listenfd = "1"
+
+cipher = {version = "0.5.0-pre.7"}
+aes = {version = "0.9.0-pre.2"}
+des = {version = "0.9.0-pre.2"}
+#generic-array = {version = "1.2.0"}
+#hybrid-array = "0.2.3"
+base64 = "0.22.1"
+cbc = "0.2.0-pre.2"
+block-padding = {version = "0.4.0-rc.2"}
+inout = {version = "0.2.0-rc.3", features = ["block-padding"]}
+
+rand = "0.9.0-beta.3"
+tracing = "0"
+tracing-subscriber = "0"
+
+[dependencies]
+sakura-api = {path = "api"}
