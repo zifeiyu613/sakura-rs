@@ -55,8 +55,6 @@ where
     fn call(&self, mut req: ServiceRequest) -> Self::Future {
         let mut context = RequestContext::new();
 
-        let svc = Arc::clone(&self.service);
-
         // 提取 header 参数
         if let Some(token) = req.headers().get("Authorization") {
             context.token = token.to_str().ok().map(|s| s.to_string());
@@ -75,6 +73,8 @@ where
             .and_then(|h| h.to_str().ok())
             .map(|s| s.to_string());
 
+        let svc = Arc::clone(&self.service);
+
         // Clone necessary data for async block
         let content_type = req.headers()
             .get("content-type")
@@ -92,29 +92,32 @@ where
                     // let mut body = web::BytesMut::new();
                     let body = extract_body_with_limit(payload, 1024 * 1024).await?;
                     if let Ok(json) = serde_json::from_slice::<Value>(&body) {
+                        println!("application/json: {:?}", json);
                         context.form_data = serde_json::from_value::<FormData>(json.clone()).ok();
                     }
-                    // Reconstruct request with consumed body
                     req = ServiceRequest::from_parts(http_req, bytes_to_payload(body));
                 }
                 // Add support for form-urlencoded if needed
                 else if content_type.starts_with("application/x-www-form-urlencoded") {
                     let body = extract_body_with_limit(payload, 1024 * 1024).await?;
-
-                    if let Ok(form) = serde_urlencoded::from_bytes::<FormData>(&body) {
-                        context.form_data = Some(form);
+                    if let Ok(form_data) = serde_urlencoded::from_bytes::<FormData>(&body) {
+                        println!("application/x-www-form-urlencoded: {:?}", form_data);
+                        context.form_data = Some(form_data);
                     }
 
                     req = ServiceRequest::from_parts(http_req, bytes_to_payload(body));
                 } else if content_type.starts_with("multipart/form-data") {
                     let multipart = Multipart::new(http_req.headers(), payload);
                     context.form_data = Some(handle_multipart(multipart).await?);
+                    println!("application/form-data: {:?}", context.form_data);
                     // 重新组装请求体为空 Payload
                     req = ServiceRequest::from_parts(http_req, bytes_to_payload(web::Bytes::new()));
                 } else {
+                    println!("content_type: {:?}", &content_type);
                     req = ServiceRequest::from_parts(http_req, payload);
                 }
             } else {
+                println!("no content_type");
                 // If no content-type, just reconstruct the request
                 req = ServiceRequest::from_parts(http_req, payload);
             }

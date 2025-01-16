@@ -1878,6 +1878,8 @@ checksum = "f3cb5ba0dc43242ce17de99c180e96db90b235b8a9fdc9543c96d2209116bd9f"
 name = "sakura"
 version = "0.1.0"
 dependencies = [
+ "actix-web",
+ "futures",
  "sakura-api",
 ]
 
@@ -1886,9 +1888,7 @@ name = "sakura-api"
 version = "0.1.0"
 dependencies = [
  "actix-web",
- "log",
  "middleware",
- "rand 0.8.5",
  "sakura-core",
  "serde",
  "serde_json",
@@ -2379,6 +2379,15 @@ dependencies = [
  "once_cell",
  "rustix",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "tests"
+version = "0.1.0"
+dependencies = [
+ "actix-web",
+ "futures",
+ "sakura-api",
 ]
 
 [[package]]

@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct FormData {
 
-    pub data: Option<serde_json::Value>,
+    pub data: Option<String>,
     // pub data: Option<web::Json<AppData1>>,
 
     #[serde(skip)]
@@ -16,22 +16,6 @@ pub struct FormData {
 
 }
 
-
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub struct AppData1 {
-    pub version: Option<String>,
-    pub source: Option<String>,
-    pub device: Option<String>,
-    pub package_name: Option<String>,
-    pub imei: Option<String>,
-    pub device_code: Option<String>,
-    pub platform: Option<String>,
-    pub uid: Option<i64>,
-    pub token: Option<String>,
-    pub channel: Option<String>,
-    pub sub_channel: Option<String>,
-    pub network: Option<String>,
-}
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct RequestContext {

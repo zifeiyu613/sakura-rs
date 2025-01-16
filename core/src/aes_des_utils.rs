@@ -6,8 +6,9 @@ use base64::Engine;
 use cipher::{typenum, KeySizeUser};
 use des::Des;
 use std::error::Error;
+use block_padding::Pkcs7;
 
-/// AES-128 加密函数（加密后返回 Base64 编码的字符串）
+/// AES-128 EBC 加密函数（加密后返回 Base64 编码的字符串）
 ///
 /// # 参数
 /// - `key`: 16 字节的密钥（AES-128 要求密钥长度为 16 字节）
@@ -186,6 +187,7 @@ where
 
 //==================================================================================================
 
+
 /// DES 加密函数（加密后返回 Base64 编码的字符串）
 ///
 /// # 参数
@@ -267,6 +269,25 @@ pub fn des_decrypt(key: [u8; 8], iv: [u8; 8], data: &str) -> Result<String, Box<
     Ok(String::from_utf8_lossy(&decrypted_data).to_string())
 }
 
+
+
+pub fn des_encrypt_base64_new(key: &[u8], plaintext: &str) -> String {
+    // let key = Array::from(key);
+    let cipher = Des::new_from_slice(key).expect("invalid key");
+
+    let ciphertext = cipher.encrypt_padded_vec::<Pkcs7>(plaintext.as_bytes());
+    // 返回 Base64 编码的密文
+    encode_base64(ciphertext).unwrap()
+}
+pub fn des_decrypt_new(key: &[u8], ciphertext: &str) -> Result<String, Box<dyn Error>> {
+    let ciphertext = decode_base64(ciphertext)?;
+
+    let cipher = Des::new_from_slice(key).expect("invalid key");
+
+    let plaintext = cipher.decrypt_padded_vec::<Pkcs7>(&ciphertext)?;
+
+    Ok(String::from_utf8_lossy(&plaintext).to_string())
+}
 
 // PKCS7 填充
 fn pkcs7_pad(data: &[u8], block_size: usize) -> Vec<u8> {
@@ -400,7 +421,7 @@ mod tests {
     }
 
     #[test]
-    fn test_des_encrypt_base64() {
+    fn test_des_base64() {
         let key = b"spef11kg"; // 16 字节的密钥
 
         let iv = [0x12, 0x34, 0x56, 0x78, 0x90, 0xAB, 0xCD, 0xEF];
@@ -409,6 +430,7 @@ mod tests {
         // let data = r#"Hello, DES Encryption!"#; // 明文数据
 
         let encrypt_data = des_encrypt_base64(*key, iv, data);
+
         println!("Encrypted: {:?}", encrypt_data);
 
 
@@ -416,9 +438,16 @@ mod tests {
 
         assert_eq!(&encrypt_data, encrypt_data1);
 
-        let decrypt_data = des_decrypt(*key, iv, &encrypt_data);
-        println!("decrypt_data: {:?}", decrypt_data.unwrap());
 
+        let plaintext = des_decrypt(*key, iv, &encrypt_data).unwrap();
+
+
+        let ciphertext = des_encrypt_base64_new(key, &plaintext);
+        let plaintext1 = des_decrypt_new(key, &ciphertext).unwrap();
+        println!("decrypt_data: {:?}", plaintext);
+        // println!("decrypt_data1: {:?}", plaintext1);
+
+        assert_eq!(plaintext, plaintext1);
 
         // println!("encode_base64: {:?}", encode_base64(data.as_bytes().to_vec()).unwrap())
 

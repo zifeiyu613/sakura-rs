@@ -12,7 +12,8 @@ serde_json = {workspace = true}
 tracing = {workspace = true}
 tracing-subscriber = {workspace = true, features = ["chrono"]}
 
+
+
+
 sakura-core = {path = "../core"}
-rand = "0.8.5"
 middleware = { path = "../middleware" }
-log = "0.4.22"

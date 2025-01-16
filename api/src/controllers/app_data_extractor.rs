@@ -1,6 +1,4 @@
-use std::ops::Deref;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use middleware::RequestContext;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -19,19 +17,19 @@ pub struct AppData {
     pub network: Option<String>,
 }
 
-// impl AppData {
-//     pub fn from(context: RequestContext) -> AppData {
-//         match context.form_data {
-//             Some(form_data) => {
-//                 let data = form_data.data;
-//                 if let Some(data) = data {
-//                     println!("data: {:?}", data);
-//                     return serde_json::from_value(data).unwrap();
-//                     // return serde_json::from_str(data.to_string().as_str()).expect("cannot deserialize app data")
-//                 }
-//                 AppData::default()
-//             },
-//             None => AppData::default(),
-//         }
-//     }
-// }
+impl AppData {
+    pub fn new(context: &RequestContext) -> AppData {
+        match context.form_data.as_ref() {
+            Some(form_data) => {
+                let data = form_data.data.as_ref();
+                if let Some(data) = data {
+                    println!("data: {:?}", data);
+                    return serde_json::from_str(data).unwrap();
+                    // return serde_json::from_str(data.to_string().as_str()).expect("cannot deserialize app data")
+                }
+                AppData::default()
+            },
+            None => AppData::default(),
+        }
+    }
+}
