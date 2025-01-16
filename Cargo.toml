@@ -13,7 +13,6 @@ members = [
     "entity",
     "middleware",
     "service",
-    "tests"
 ]
 
 
@@ -55,5 +54,3 @@ tracing-subscriber = "0"
 
 [dependencies]
 sakura-api = { path = "api" }
-actix-web = "4.9.0"
-futures = "0.3.31"
