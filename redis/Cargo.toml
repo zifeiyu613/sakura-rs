@@ -1,0 +1,14 @@
+[package]
+name = "sakura-redis"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+redis = {workspace = true}
+deadpool-redis = {workspace = true}
+toml = {workspace = true}
+serde = {workspace = true}
+
+tracing = {workspace = true}
+once_cell = { workspace = true }
