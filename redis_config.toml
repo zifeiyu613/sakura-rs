@@ -1,0 +1,3 @@
+# The URL format is redis://[<username>][:<password>@]<hostname>[:port][/[<db>][?protocol=<protocol>]]
+uri="redis://HuaJian2019testRedis@srv-redis-uat-io.kaiqi.xin:7001/0"
+pool_max_size=10

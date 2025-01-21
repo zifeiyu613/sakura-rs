@@ -15,5 +15,6 @@ tracing-subscriber = {workspace = true, features = ["chrono"]}
 
 
 
-sakura-core = {path = "../core"}
 middleware = { path = "../middleware" }
+sakura-core = {path = "../core"}
+sakura-redis = {path = "../redis"}

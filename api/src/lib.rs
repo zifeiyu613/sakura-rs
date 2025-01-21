@@ -29,18 +29,8 @@ async fn home() -> impl Responder {
 
 #[actix_web::main]
 pub async fn main() {
-    // 使用上海时区
-    let timer = fmt::time::ChronoLocal::new("%Y-%m-%d %H:%M:%S%.3f %z".to_string());
 
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        .with_timer(timer)
-        .with_target(false) // 可选：隐藏目标
-        .with_thread_ids(false) // 可选：隐藏线程ID
-        .with_line_number(true) // 可选：显示行号
-        .init();
-
-    // 环境变量初始化
+    init_logger();
 
     let addrs = ("127.0.0.1", 8080);
 
@@ -56,4 +46,25 @@ pub async fn main() {
     .run()
     .await
     .unwrap()
+}
+
+
+fn init_logger() {
+    // 使用上海时区
+    let timer = fmt::time::ChronoLocal::new("%Y-%m-%d %H:%M:%S%.3f %z".to_string());
+
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::INFO)
+        .with_timer(timer)
+        .with_target(false) // 可选：隐藏目标
+        .with_thread_ids(false) // 可选：隐藏线程ID
+        .with_line_number(true) // 可选：显示行号
+        .init();
+}
+
+
+async fn init_test() {
+    sakura_redis::client::set("rust:key", "value").await;
+
+
 }

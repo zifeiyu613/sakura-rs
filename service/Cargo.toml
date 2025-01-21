@@ -13,3 +13,4 @@ chrono = {workspace = true}
 once_cell = {workspace = true}
 
 sakura-entity={path="../entity"}
+sakura-redis={path="../redis"}
