@@ -1,3 +1,10 @@
-# The URL format is redis://[<username>][:<password>@]<hostname>[:port][/[<db>][?protocol=<protocol>]]
-uri="redis://HuaJian2019testRedis@srv-redis-uat-io.kaiqi.xin:7001/0"
+#URL format: {redis|rediss}://[<username>][:<password>@]<hostname>[:port][/<db>]
+#Basic: redis:// 127.0.0.1:6379
+#Username & Password: redis:// user:password@127.0.0.1:6379
+#Password only: redis://:password@127.0.0.1:6379
+#Specifying DB: redis:// 127.0.0.1:6379/ 0
+#Enabling TLS: rediss:// 127.0.0.1:6379
+#Enabling Insecure TLS: rediss:// 127.0.0.1:6379/#insecure
+#Enabling RESP3: redis:// 127.0.0.1:6379/?protocol=resp3
+uri="redis://:HuaJian2019testRedis@srv-redis-uat-io.kaiqi.xin:7001/0"
 pool_max_size=10

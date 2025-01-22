@@ -32,6 +32,8 @@ pub async fn main() {
 
     init_logger();
 
+    init_test();
+
     let addrs = ("127.0.0.1", 8080);
 
     HttpServer::new(|| {
@@ -62,9 +64,10 @@ fn init_logger() {
         .init();
 }
 
+ fn init_test() {
+    sakura_redis::redis_helper::RedisHelper.set("rust:key", "value1111").unwrap();
+    let value = sakura_redis::redis_helper::RedisHelper.get::<String>("rust:key").unwrap();
 
-async fn init_test() {
-    sakura_redis::client::set("rust:key", "value").await;
-
+    println!("init_test value:{:?}", value)
 
 }

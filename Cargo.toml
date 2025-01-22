@@ -24,9 +24,8 @@ futures = "0.3"
 sqlx = { version = "0.8", features = ["runtime-tokio", "mysql", "chrono"] }
 tokio = { version = "1", features = ["full"] }
 
-deadpool = "0.12.1"
-deadpool-redis = "0.18.0"
-redis = {version = "0.27"}
+redis = {version = "0.28", features = ["r2d2"]}
+r2d2 = "0.8.10"
 
 toml = "0.8"
 envy = "0.4.2"
