@@ -16,7 +16,8 @@ base64 = {workspace = true}
 
 cbc = {workspace = true}
 block-padding = {workspace = true}
-inout = {workspace = true }
+
+thiserror = {workspace = true}
 
 tracing = {workspace = true}
 tracing-subscriber = {workspace = true}

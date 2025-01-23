@@ -1,3 +1,4 @@
+pub mod errors;
 pub mod response;
 pub mod status_code;
 pub mod aes_des_utils;

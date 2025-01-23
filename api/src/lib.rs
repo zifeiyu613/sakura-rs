@@ -32,8 +32,6 @@ pub async fn main() {
 
     init_logger();
 
-    init_test();
-
     let addrs = ("127.0.0.1", 8080);
 
     HttpServer::new(|| {
@@ -62,12 +60,4 @@ fn init_logger() {
         .with_thread_ids(false) // 可选：隐藏线程ID
         .with_line_number(true) // 可选：显示行号
         .init();
-}
-
- fn init_test() {
-    sakura_redis::redis_helper::RedisHelper.set("rust:key", "value1111").unwrap();
-    let value = sakura_redis::redis_helper::RedisHelper.get::<String>("rust:key").unwrap();
-
-    println!("init_test value:{:?}", value)
-
 }

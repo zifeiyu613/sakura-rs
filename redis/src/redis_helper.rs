@@ -1,6 +1,5 @@
 use r2d2::PooledConnection;
 use redis::{Client, Commands, FromRedisValue, RedisError, RedisResult, ToRedisArgs};
-use serde::Deserialize;
 use std::time::Duration;
 
 /// Redis 命令辅助工具
@@ -133,8 +132,9 @@ mod tests {
         RedisHelper.del(key).expect("Failed to remove value");
 
         let incr = RedisHelper.incr::<i64>(key,1).unwrap();
+        println!("Incr First: {:?}", incr);
         let incr = RedisHelper.incr::<i64>(key,1).unwrap();
-        println!("Incr: {:?}", incr);
+        println!("Incr Second: {:?}", incr);
 
         let incr = RedisHelper.incr::<i64>(key,-1).unwrap();
         assert_eq!(incr, 1);

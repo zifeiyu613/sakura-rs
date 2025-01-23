@@ -9,8 +9,8 @@ members = [
     ".",
     "actix-code",
     "api",
-    "core",
-    "entity",
+    "core", "database",
+    "entity", "macros",
     "middleware", "redis",
     "service",
 ]
@@ -54,8 +54,19 @@ block-padding = { version = "0.4.0-rc.2" }
 inout = { version = "0.2.0-rc.3", features = ["block-padding"] }
 
 rand = "0.9.0-beta.3"
+
+thiserror = "2.0"
+
 tracing = "0"
 tracing-subscriber = "0"
 
+# Rust 中的 宏（macro）开发生态系统的核心组件，主要用于 自定义派生宏（procedural macro） 和 代码生成
+syn = { version = "2.0", features = ["full"] }  # 解析 Rust 源代码为抽象语法树（AST）用于读取和解析宏的输入代码
+quote = "1.0"                                   # 动态生成 Rust 代码, 用于生成宏的输出代码
+proc-macro2 = "1.0"                             # 提供 TokenStream，支持过程宏的开发, 底层基础设施，支持跨平台 Token 流操作
+darling = "0.20"                                # 简化属性解析, 用于解析自定义宏属性
+
 [dependencies]
+sakura-core = { path = "core" }
 sakura-api = { path = "api" }
+sakura-macros = { path = "macros" }
