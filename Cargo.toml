@@ -67,6 +67,7 @@ proc-macro2 = "1.0"                             # 提供 TokenStream，支持过
 darling = "0.20"                                # 简化属性解析, 用于解析自定义宏属性
 
 [dependencies]
+#actix-web = {workspace = true}
 sakura-core = { path = "core" }
 sakura-api = { path = "api" }
 sakura-macros = { path = "macros" }

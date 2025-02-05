@@ -144,7 +144,7 @@ pub fn builder_macro_impl(input: TokenStream) -> TokenStream {
     };
 
     // 输出生成的代码到终端
-    std::fs::write("tests/builder_expanded.rs", format!("{}", expanded)).expect("Unable to write expanded code");
+    // std::fs::write("tests/builder_expanded.rs", format!("{}", expanded)).expect("Unable to write expanded code");
 
     expanded.into()
 }
