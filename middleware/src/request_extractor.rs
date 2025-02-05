@@ -1,14 +1,14 @@
-use std::collections::HashMap;
-use std::pin::Pin;
-use std::future::{ready, Ready, Future};
-use std::sync::Arc;
-use actix_web::{dev, dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform}, error, Error, HttpMessage, HttpResponse};
-use serde_json::Value;
-use actix_web::web;
-use futures::StreamExt;
+use super::request_context::{FormData, RequestContext};
 use actix_http::h1;
 use actix_multipart::Multipart;
-use super::request_context::{RequestContext, FormData};
+use actix_web::web;
+use actix_web::{dev, dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform}, error, Error, HttpMessage};
+use futures::StreamExt;
+use serde_json::Value;
+use std::collections::HashMap;
+use std::future::{ready, Future, Ready};
+use std::pin::Pin;
+use std::sync::Arc;
 
 pub struct RequestExtractor;
 
@@ -190,9 +190,9 @@ async fn handle_multipart(mut multipart: Multipart) -> Result<FormData, Error> {
 /// 测试中间件是否正确处理并保留请求体。
 #[cfg(test)]
 mod tests {
+    use crate::{RequestContext, RequestExtractor};
     use actix_http::HttpMessage;
     use actix_web::{test, web, App, HttpRequest, HttpResponse};
-    use crate::{RequestContext, RequestExtractor};
 
     #[actix_web::test]
     async fn test_multipart_form_data() {

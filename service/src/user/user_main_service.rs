@@ -1,10 +1,9 @@
-use sakura_database::pool_manager;
 use sakura_entity::user::user_main::UserMain;
 
 use sqlx::Row;
 use sakura_database::pool_manager::{DatabaseType, PoolManager};
 
-pub async fn query_token(uid: u64) -> Option<String> {
+pub async fn query_token(uid: &i64) -> Option<String> {
 
     let pool = PoolManager::new().get_mysql_pool(DatabaseType::Phoenix).await.unwrap();
 
@@ -65,7 +64,7 @@ mod tests {
     #[tokio::test]
     async fn test_query_token() {
         let uid = 2;
-        let token = query_token(uid).await;
+        let token = query_token(&uid).await;
 
         assert!(token.is_some());
         assert_eq!(token.unwrap(), "fb8427e74ac3f7a0d6bb8e58e7a799ad".to_string());

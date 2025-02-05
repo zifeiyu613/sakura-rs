@@ -1,11 +1,12 @@
 pub mod controllers;
 
-use crate::controllers::test_controller::test_controller_config;
 use actix_web::middleware::Logger;
 pub use actix_web::{get, web, App, Either, Error, HttpResponse, HttpServer, Responder};
 use middleware::request_extractor::RequestExtractor;
 use sakura_core::response::Response;
 use tracing_subscriber::fmt;
+use crate::controllers::test_controller::test_controller_config;
+use crate::controllers::user_controller::user_controller_config;
 
 #[actix_web::main]
 pub async fn main() {
@@ -21,6 +22,7 @@ pub async fn main() {
             .service(home)
             .service(check_health)
             .service(web::scope("/test").configure(test_controller_config))
+            .service(web::scope("/user").configure(user_controller_config))
     })
     .bind(addrs)
     .unwrap()

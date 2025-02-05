@@ -1,3 +1,4 @@
-pub mod test_controller;
 mod app_data_extractor;
-mod check_health_controller;
+
+pub(crate) mod test_controller;
+pub(crate)mod user_controller;

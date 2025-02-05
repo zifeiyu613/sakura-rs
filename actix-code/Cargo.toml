@@ -11,13 +11,7 @@ serde_json = {workspace = true}
 futures = {workspace = true}
 
 chrono = {workspace = true}
-chrono-tz = "0.10.0"
-
 
 tracing = {workspace = true}
 tracing-subscriber = {workspace = true, features = ["chrono"]}
 
-middleware = {path = "../middleware"}
-service = {path = "../service"}
-sakura-entity = {path = "../entity"}
-rand = "0.8.5"
