@@ -12,10 +12,6 @@ pub static REDIS_POOL: Lazy<OnceCell<Pool<Client>>> = Lazy::new(|| {
     OnceCell::new() // 用 `OnceCell` 来初始化
 });
 
-// pub(crate) async fn get_redis_pool() -> &'static Pool {
-//     REDIS_POOL.get_or_init(init_redis_pool).await
-// }
-
 pub(crate) fn get_redis_conn<'a>() -> &'a Pool<Client> {
     let pool = REDIS_POOL.get_or_init(init_redis_pool);
     pool
@@ -24,7 +20,7 @@ pub(crate) fn get_redis_conn<'a>() -> &'a Pool<Client> {
 
 pub(crate) fn init_redis_pool() -> Pool<Client> {
     // 配置 Deadpool Redis 连接池
-    let redis_config = RedisConfig::from_file("redis_config.toml");
+    let redis_config = RedisConfig::load_config();
     info!("Creating Redis Pool: {:?}", redis_config);
 
     let client = Client::open(redis_config.uri).unwrap();

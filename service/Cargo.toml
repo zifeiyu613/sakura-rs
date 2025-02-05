@@ -14,3 +14,4 @@ once_cell = {workspace = true}
 
 sakura-entity={path="../entity"}
 sakura-redis={path="../redis"}
+sakura-database={path="../database"}

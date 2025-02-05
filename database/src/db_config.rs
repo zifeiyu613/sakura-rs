@@ -1,15 +1,16 @@
-use std::fs;
-use std::path::Path;
+use std::{env, fs};
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize)]
+/// **数据库配置结构体**
+#[derive(Debug, Deserialize, Clone)]
 pub struct DbConfig {
     pub phoenix: Option<DatabaseConfig>,
     pub huajian_activity: Option<DatabaseConfig>,
     pub huajian_live: Option<DatabaseConfig>,
 }
 
-#[derive(Debug, Deserialize)]
+/// **单个数据库的配置**
+#[derive(Debug, Deserialize, Clone)]
 pub struct DatabaseConfig {
     pub url: String,
     pub max_connections: u32,
@@ -17,13 +18,31 @@ pub struct DatabaseConfig {
 }
 
 
+/// **固定配置文件路径（默认项目根目录 `config.toml`）**
+const DEFAULT_CONFIG_PATH: &str = "config.toml";
+
 impl DbConfig {
     /// 从指定路径加载配置文件
-    pub fn from_file(path: &str) -> Self {
-        // 读取文件内容
-        let config_str = fs::read_to_string(Path::new(path)).expect("Could not read DatabaseConfig file");
-        // 使用 `toml` crate 解析配置
-        let config: DbConfig = toml::from_str(&config_str).expect("Failed to parse toml");
-        config
+    pub fn load_config() -> Self {
+        // 获取项目根目录下的 `config.toml`
+        let config_path = env::var("APP_CONFIG_PATH").unwrap_or_else(|_|
+            if fs::exists("mysql_config.toml").is_ok() {
+                "mysql_config.toml".to_string()
+            } else {
+                DEFAULT_CONFIG_PATH.to_string()
+            }
+        );
+
+        if let Ok(config_content) = fs::read_to_string(&config_path) {
+            if let Ok(parsed_config) = toml::from_str::<DbConfig>(&config_content) {
+                println!("✅ 数据库配置已加载, {}", &config_path);
+                parsed_config
+            } else {
+                panic!("❌ 配置文件格式错误，请检查 `{}`", &config_path);
+            }
+        } else {
+            panic!("❌ 读取 `{}` 失败，请确保配置文件存在", &config_path);
+        }
+
     }
 }
