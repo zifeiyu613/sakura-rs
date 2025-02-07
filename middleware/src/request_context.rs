@@ -2,17 +2,18 @@ use std::collections::HashMap;
 use actix_web::web;
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RequestData {
 
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct FormData {
+    pub data: String, // data 可能是 JSON 字符串，也可能是加密的密文
 
-    pub data: Option<String>,
-    // pub data: Option<web::Json<AppData1>>,
+    #[serde(rename = "plainText")]
+    pub plain_text: Option<bool>,
 
     #[serde(skip)]
     pub files: HashMap<String, web::Bytes>,
 
-    pub fields: Option<HashMap<String, String>>,
+    // pub fields: Option<HashMap<String, String>>,
 
 }
 
@@ -24,7 +25,7 @@ pub struct RequestContext {
     pub token: Option<String>,
     pub client_ip: Option<String>,
     pub user_agent: Option<String>,
-    pub form_data: Option<FormData>,  // 新增字段
+    pub request_data: Option<String>,  // 新增字段
 }
 
 impl RequestContext {

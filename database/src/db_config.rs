@@ -26,11 +26,7 @@ impl DbConfig {
     pub fn load_config() -> Self {
         // 获取项目根目录下的 `config.toml`
         let config_path = env::var("APP_CONFIG_PATH").unwrap_or_else(|_|
-            if fs::exists("mysql_config.toml").is_ok() {
-                "mysql_config.toml".to_string()
-            } else {
-                DEFAULT_CONFIG_PATH.to_string()
-            }
+            DEFAULT_CONFIG_PATH.to_string()
         );
 
         if let Ok(config_content) = fs::read_to_string(&config_path) {

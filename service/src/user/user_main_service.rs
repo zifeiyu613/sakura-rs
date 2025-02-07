@@ -1,36 +1,40 @@
 use sakura_entity::user::user_main::UserMain;
 
-use sqlx::Row;
-use sakura_database::pool_manager::{DatabaseType, PoolManager};
+use sakura_database::pool_manager::{DatabaseType, POOL_MANAGER};
+use sqlx::{Acquire, Row};
 
 pub async fn query_token(uid: &i64) -> Option<String> {
 
-    let pool = PoolManager::new().get_mysql_pool(DatabaseType::Phoenix).await.unwrap();
+    let pool = POOL_MANAGER.get_mysql_pool(DatabaseType::Phoenix).await.unwrap();
 
-    let row = sqlx::query("select * from t_user_main where uid = ?")
+    // ✅ `Arc<Pool<MySql>>` 需要解引用
+    let pool = &*pool;
+
+    let row = sqlx::query("select token from t_user_main where uid = ?")
         .bind(uid)
-        .fetch_one(&pool).await;
+        .fetch_one(pool).await;
 
-    let token = match row {
-        Ok(row) => {
-            Some(row.get::<String, _>("token"))
-        },
-        Err(_) => {
-            None
-        }
-    };
-    token
+    // let row: Result<(i32, String), Error> = sqlx::query_as("SELECT uid, username FROM t_user_main WHERE uid = ?")
+    //     .bind(2)
+    //     .fetch_one(&mut conn)
+    //     .await;
+    //
+    println!("token: {:?}", row);
+
+    Some(row.unwrap().get("token"))
 }
 
 // 1482675766000
 pub async fn query_all(timestamp: u64) -> Vec<UserMain> {
-    let pool = PoolManager::new().get_mysql_pool(DatabaseType::Phoenix).await.unwrap();
+    let mut conn = POOL_MANAGER.get_mysql_connection(DatabaseType::Phoenix).await.unwrap();
+
+    let mut tx = conn.begin().await.unwrap(); // 开启事务
 
     // 执行 SET 语句
-    // sqlx::query("SET optimizer_switch='index_merge=off'")
-    //     .execute(pool)
-    //     .await
-    //     .unwrap();
+    sqlx::query("SET optimizer_switch='index_merge=off'")
+        .execute(&mut *tx)
+        .await
+        .unwrap();
 
     let sql = r#"
         SELECT m.*
@@ -46,7 +50,9 @@ pub async fn query_all(timestamp: u64) -> Vec<UserMain> {
 
     let raws = sqlx::query_as::<_, UserMain>(sql)
         .bind(timestamp)
-        .fetch_all(&pool).await.unwrap();
+        .fetch_all(&mut *tx).await.unwrap();
+
+    tx.commit().await.unwrap(); // 提交事务
 
     let uid_list = raws.iter().map(|x| {
         x.uid

@@ -1397,6 +1397,7 @@ dependencies = [
  "actix-web",
  "futures",
  "futures-util",
+ "sakura-core",
  "serde",
  "serde_json",
  "serde_urlencoded",

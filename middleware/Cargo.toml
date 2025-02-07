@@ -15,3 +15,5 @@ serde_json = {workspace = true}
 serde_urlencoded = { workspace = true }
 futures-util = "0.3"
 uuid = { version = "1.0", features = ["v4"] }
+
+sakura-core = {path = "../core"}
