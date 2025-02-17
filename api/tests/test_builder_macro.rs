@@ -1,5 +1,4 @@
-pub use sakura_macros::Builder;
-
+use sakura_macros::Builder;
 
 #[test]
 fn test_builder() {
