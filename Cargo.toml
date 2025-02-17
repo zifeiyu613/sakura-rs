@@ -32,6 +32,8 @@ r2d2 = "0.8.10"
 toml = "0.8"
 envy = "0.4.2"
 clap = "4"
+strum = "0.26"
+strum_macros = "0.26"
 
 
 once_cell = { version = "1" }
