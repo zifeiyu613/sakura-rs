@@ -1,16 +1,17 @@
+use crate::mq_config::RabbitMQConfig;
 use deadpool_lapin::{Config, Pool, PoolConfig, Runtime};
-use lapin::{Connection, ConnectionProperties};
+use lapin::ConnectionProperties;
 use once_cell::sync::Lazy;
-use std::sync::{Arc, Mutex};
-
+use std::sync::Arc;
 
 /// **全局 RabbitMQ 连接池**
 /// 连接字符串，格式为：amqp://[用户名][:密码@][主机][:端口][/虚拟机]
 static RABBITMQ_POOL: Lazy<Arc<Pool>> = Lazy::new(|| {
+    let mq_config = RabbitMQConfig::load_config();
     let cfg = Config {
-        url: Some("amqp://admin:YR888888@srv-rbtmq-uat-io.kaiqi.xin:5672/%2f".into()),
+        url: Some(mq_config.rabbit.uri.clone()),
         pool: Some(PoolConfig {
-            max_size: 10,
+            max_size: mq_config.rabbit.pool_max_size,
             ..PoolConfig::default()
         }),
         connection_properties: ConnectionProperties::default(),

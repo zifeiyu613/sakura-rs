@@ -6,12 +6,10 @@ edition = "2021"
 [workspace]
 resolver = "2"
 members = [
-    ".",
-    "actix-code",
-    "api",
+    ".", "actix-code", "api",
     "core", "database",
-    "entity", "macros",
-    "middleware", "mq", "redis",
+    "macros", "middleware",
+    "mq", "redis",
     "service",
 ]
 

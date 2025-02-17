@@ -16,6 +16,7 @@
       <sourceFolder url="file://$MODULE_DIR$/macros/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/macros/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/redis/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/mq/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

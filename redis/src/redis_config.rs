@@ -1,5 +1,4 @@
 use serde::Deserialize;
-use std::path::Path;
 use std::{env, fs};
 
 #[derive(Debug, Deserialize)]
@@ -38,17 +37,6 @@ pub struct RedisConfig {
 const DEFAULT_CONFIG_PATH: &str = "config.toml";
 
 impl RedisConfig {
-    /// 从指定路径加载配置文件
-    // pub fn from_file(path: &str) -> Self {
-    //     // let base_dir = env::current_dir().expect("Failed to get current directory");
-    //     // let absolute_path = base_dir.join(path);
-    //     println!("Using absolute path: {}", path);
-    //     // 读取文件内容
-    //     let config_str = fs::read_to_string(Path::new(path)).expect("Could not read RedisConfig file");
-    //     // 使用 `toml` crate 解析配置
-    //     let config: RedisConfig = toml::from_str(&config_str).expect("Failed to parse toml");
-    //     config
-    // }
 
     /// 从指定路径加载配置文件
     pub fn load_config() -> Self {

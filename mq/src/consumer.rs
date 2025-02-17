@@ -65,11 +65,6 @@ pub async fn start_consumer(
             match delivery {
                 Ok(delivery) => {
                     let data = delivery.data.clone();
-                    // if let Err(e) = consumer.handle_message(&data).await {
-                    //     eprintln!("❌ 处理消息失败: {}", e);
-                    // }
-                    // // 确认ACK
-                    // delivery.ack(Default::default()).await;
 
                     // 处理消息
                     match consumer.handle_message(&data).await {
@@ -128,7 +123,7 @@ mod tests {
         }
 
         let data = OrderMessage {
-            order_id: 22,
+            order_id: 212,
             status: "rust_order_test11".to_string(),
         };
 
