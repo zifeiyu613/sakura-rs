@@ -2658,24 +2658,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f3cb5ba0dc43242ce17de99c180e96db90b235b8a9fdc9543c96d2209116bd9f"
 
 [[package]]
-name = "sakura"
-version = "0.1.0"
-dependencies = [
- "sakura-api",
- "sakura-core",
- "sakura-macros",
-]
-
-[[package]]
 name = "sakura-api"
 version = "0.1.0"
 dependencies = [
  "actix-web",
+ "chrono",
  "middleware",
  "sakura-core",
- "sakura-service",
+ "sakura-database",
  "serde",
  "serde_json",
+ "sqlx",
+ "tokio",
  "tracing",
  "tracing-subscriber",
 ]

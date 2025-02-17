@@ -1,7 +1,7 @@
 use actix_web::{web, HttpMessage, HttpRequest, HttpResponse, Responder};
 use middleware::RequestContext;
-use sakura_service::user::user_main_service;
 use crate::controllers::app_data_extractor::AppData;
+use crate::service::user::user_main_service;
 
 pub fn user_controller_config(cfg: &mut web::ServiceConfig) {
     cfg.service(web::resource("/get_token").get(get_user_token));

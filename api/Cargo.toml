@@ -5,17 +5,20 @@ edition = "2021"
 
 [dependencies]
 actix-web = {workspace = true}
+tokio = {workspace = true, features = ["full"]}
 
 serde = {workspace = true, features = ["derive"]}
 serde_json = {workspace = true}
 
+sqlx = {workspace = true, features = ["runtime-tokio", "mysql", "chrono"]}
+chrono = {workspace = true}
+
+
 tracing = {workspace = true}
 tracing-subscriber = {workspace = true, features = ["chrono"]}
 
-
-
-
 middleware = {path = "../middleware" }
 sakura-core = {path = "../core"}
-sakura-service = {path = "../service"}
+
 #sakura-redis = {path = "../redis"}
+sakura-database={path="../database"}

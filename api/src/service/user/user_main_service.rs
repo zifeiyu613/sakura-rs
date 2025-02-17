@@ -1,4 +1,4 @@
-use sakura_entity::user::user_main::UserMain;
+use crate::service::user::user_main::UserMain;
 
 use sakura_database::pool_manager::{DatabaseType, POOL_MANAGER};
 use sqlx::{Acquire, Row};

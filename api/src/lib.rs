@@ -1,35 +1,8 @@
-pub mod controllers;
 
-use actix_web::middleware::Logger;
 pub use actix_web::{get, web, App, Either, Error, HttpResponse, HttpServer, Responder};
-use middleware::request_extractor::RequestExtractor;
 use sakura_core::response::Response;
 use tracing_subscriber::fmt;
-use crate::controllers::test_controller::test_controller_config;
-use crate::controllers::user_controller::user_controller_config;
 
-#[actix_web::main]
-pub async fn main() {
-    init_logger();
-
-    let addrs = ("127.0.0.1", 8080);
-
-    HttpServer::new(|| {
-        App::new()
-            .wrap(Logger::default())
-            .wrap(RequestExtractor::default())
-            // .service(index)
-            .service(home)
-            .service(check_health)
-            .service(web::scope("/test").configure(test_controller_config))
-            .service(web::scope("/user").configure(user_controller_config))
-    })
-    .bind(addrs)
-    .unwrap()
-    .run()
-    .await
-    .unwrap()
-}
 
 fn init_logger() {
     // 使用上海时区
@@ -71,7 +44,6 @@ async fn check_health() -> impl Responder {
 
 #[cfg(test)]
 mod tests {
-
     use crate::{check_health, home, index};
     use actix_web::{test, web, App, HttpResponse};
 

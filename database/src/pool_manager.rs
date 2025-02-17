@@ -22,7 +22,7 @@ pub enum DatabaseType {
 }
 
 /// **全局数据库连接池管理器**
-pub(crate) struct PoolManager {
+pub struct PoolManager {
     // pools: RwLock<HashMap<DatabaseType, DatabasePool>>,
     mysql_pools: RwLock<HashMap<DatabaseType, Arc<Pool<MySql>>>>,
     db_config: RwLock<Option<DbConfig>>, // 仅供内部管理
