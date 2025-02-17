@@ -2666,6 +2666,7 @@ dependencies = [
  "middleware",
  "sakura-core",
  "sakura-database",
+ "sakura-macros",
  "serde",
  "serde_json",
  "sqlx",

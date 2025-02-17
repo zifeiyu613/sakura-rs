@@ -7,10 +7,13 @@ use crate::controllers::{
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
 use middleware::RequestExtractor;
-use sakura_api::{check_health, home};
+use sakura_api::{check_health, home, init_logger};
 
 #[actix_web::main]
 pub async fn main() {
+
+    init_logger();
+
     let addrs = ("127.0.0.1", 8080);
 
     HttpServer::new(|| {

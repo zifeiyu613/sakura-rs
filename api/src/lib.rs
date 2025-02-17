@@ -4,7 +4,7 @@ use sakura_core::response::Response;
 use tracing_subscriber::fmt;
 
 
-fn init_logger() {
+pub fn init_logger() {
     // 使用上海时区
     let timer = fmt::time::ChronoLocal::new("%Y-%m-%d %H:%M:%S%.3f %z".to_string());
 
