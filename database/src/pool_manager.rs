@@ -6,8 +6,6 @@ use sqlx::{MySql, Pool};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
-use strum::{IntoEnumIterator};
-use strum_macros::{Display, EnumIter, EnumString, VariantNames};
 
 // pub enum DatabasePool {
     // Postgres(Pool<Postgres>),
@@ -19,17 +17,17 @@ pub static POOL_MANAGER: Lazy<PoolManager> = Lazy::new(PoolManager::new);
 
 
 /// 数据库类型枚举
-#[derive(Debug, Eq, PartialEq, Hash, Clone, Copy, EnumIter, EnumString, VariantNames, Display)]
-#[strum(serialize_all = "snake_case")]
-pub enum DatabaseType {
-    Phoenix,
-    HuajianActivity,
-    HuajianLive,
-}
+// #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy, EnumIter, EnumString, VariantNames, Display)]
+// #[strum(serialize_all = "snake_case")]
+// pub enum DatabaseType {
+//     Phoenix,
+//     HuajianActivity,
+//     HuajianLive,
+// }
 
 /// **全局数据库连接池管理器**
 pub struct PoolManager {
-    mysql_pools: RwLock<HashMap<DatabaseType, Arc<Pool<MySql>>>>,
+    mysql_pools: RwLock<HashMap<String, Arc<Pool<MySql>>>>, // 以数据库名称为 key 存储池
     db_config: RwLock<Option<DbConfig>>, // 仅供内部管理
 }
 
@@ -53,27 +51,6 @@ impl PoolManager {
         }
     }
 
-    /// **自动加载数据库连接池**
-    async fn init_pools(&self) ->Result<(), sqlx::Error> {
-        self.load_config();
-        let db_config = self.db_config.read().unwrap().clone().unwrap();
-
-        for db_type in DatabaseType::iter() {
-            println!("DatabaseType::iter() {}", &db_type);
-            if let Some(config) = db_config.databases.get(&db_type.to_string()) {
-                println!("Loading database {}, {:?}", db_type, config);
-                let pool = MySqlPoolOptions::new()
-                    .max_connections(config.max_connections)
-                    .idle_timeout(Duration::from_secs(config.idle_timeout))
-                    .connect(&config.url)
-                    .await?;
-
-                self.mysql_pools.write().unwrap().insert(db_type, Arc::new(pool));
-                println!("✅ 已初始化 `{}` 连接池", db_type);
-            }
-        }
-        Ok(())
-    }
 
     /// **获取 MySQL 连接池（若不存在则懒加载初始化）**
     ///
@@ -88,30 +65,51 @@ impl PoolManager {
     ///
     /// ***使用案例***
     /// ```rust
-    /// let pool = POOL_MANAGER.get_mysql_pool(DatabaseType::Phoenix).await.unwrap();
+    /// let pool = POOL_MANAGER.get_mysql_pool("phoenix").await.unwrap();
     /// let row: (i32, String) = sqlx::query_as("SELECT uid, username FROM t_user_main WHERE uid = ?")
     ///     .bind(2)
     ///    .fetch_one(&*pool) // ✅ 需要解引用 `Arc<Pool<MySql>>`
     ///    .await
     ///    .unwrap();
     /// ```
-    pub async fn get_mysql_pool(&self, db_type: DatabaseType) -> Result<Arc<Pool<MySql>>, sqlx::Error> {
+    pub async fn get_mysql_pool(&self, db_name: &str) -> Result<Arc<Pool<MySql>>, sqlx::Error> {
         // **1. 先检查是否已有连接池**
         {
             let pools = self.mysql_pools.read().unwrap();
-            let pool = pools.get(&db_type);
-            println!("type:{}, pool: {:?}", &db_type, pool);
-            if let Some(pool) = pools.get(&db_type) {
+            if let Some(pool) = pools.get(db_name) {
                 return Ok(pool.clone());
             }
         }
 
-        // **2. 若连接池不存在，则自动初始化**
-        self.init_pools().await?;
+        // 2. 懒加载数据库配置
+        self.load_config();
 
-        // **3. 获取数据库配置**
-        let pools = self.mysql_pools.read().unwrap();
-        pools.get(&db_type).cloned().ok_or(sqlx::Error::PoolTimedOut)
+        // 3. 获取数据库配置
+        let db_config = {
+            let db_config = self.db_config.read().unwrap();
+            db_config.clone()
+        };
+
+        if let Some(config) = db_config {
+            if let Some(db_config_entry) = config.databases.get(db_name) {
+                // 4. 创建连接池
+                let pool = MySqlPoolOptions::new()
+                    .max_connections(db_config_entry.max_connections)
+                    .idle_timeout(Duration::from_secs(db_config_entry.idle_timeout))
+                    .connect(&db_config_entry.url)
+                    .await?;
+
+                let arc_pool = Arc::new(pool);
+
+                // 5. 将池插入到共享的池管理器中
+                let mut pools = self.mysql_pools.write().unwrap();
+                pools.insert(db_name.to_string(), arc_pool.clone());
+
+                return Ok(arc_pool);
+            }
+        }
+
+        Err(sqlx::Error::PoolTimedOut) // 未找到匹配的数据库配置
 
     }
 
@@ -128,7 +126,7 @@ impl PoolManager {
     /// ***⚠️但不推荐在普通查询中使用 conn***
     ///	- 手动管理 conn 不便：使用 conn 时，需要手动确保它的生命周期正确。
     ///	- 影响并发性能：若多个任务需要并发查询，手动获取 conn 可能会限制性能，而 pool 则由 sqlx 自动管理。
-    pub async fn get_mysql_connection(&self, db_type: DatabaseType) -> Result<PoolConnection<MySql>, sqlx::Error> {
+    pub async fn get_mysql_connection(&self, db_type: &str) -> Result<PoolConnection<MySql>, sqlx::Error> {
         let pool = self.get_mysql_pool(db_type).await?;
         pool.acquire().await
     }
@@ -139,18 +137,31 @@ impl PoolManager {
 
 #[cfg(test)]
 mod tests {
-    use crate::pool_manager::{DatabaseType, POOL_MANAGER};
+    use crate::pool_manager::{ POOL_MANAGER};
     use chrono::{DateTime, Utc};
     use sqlx::Row;
+    use strum::{IntoEnumIterator};
+    use strum_macros::{Display, EnumIter, EnumString, VariantNames};
+
+
+    #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy, EnumIter, EnumString, VariantNames, Display)]
+    #[strum(serialize_all = "snake_case")]
+    pub enum DatabaseType {
+        Phoenix,
+        HuajianActivity,
+        HuajianLive,
+    }
 
     #[tokio::test]
     async fn test_pool_manager() -> Result<(), sqlx::Error> {
 
-        let pool = POOL_MANAGER.get_mysql_pool(DatabaseType::Phoenix).await?;
-        let pool1 = POOL_MANAGER.get_mysql_pool(DatabaseType::HuajianActivity).await?;
-        let pool2 = POOL_MANAGER.get_mysql_pool(DatabaseType::HuajianLive).await?;
+        let pool = POOL_MANAGER.get_mysql_pool(&DatabaseType::Phoenix.to_string()).await?;
+        let pool1 = POOL_MANAGER.get_mysql_pool(&DatabaseType::HuajianActivity.to_string()).await?;
+        let _pool2 = POOL_MANAGER.get_mysql_pool(&DatabaseType::HuajianLive.to_string()).await?;
 
         // let conn = get_mysql_connection(DatabaseType::Phoenix).await.unwrap();
+
+        println!("{:?}", pool1);
 
         let row = sqlx::query("select * from t_user_main where uid = ?")
             .bind(2)
