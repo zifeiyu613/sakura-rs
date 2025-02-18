@@ -2,12 +2,15 @@ use serde::Deserialize;
 use std::{env, fs};
 
 #[derive(Debug, Deserialize)]
-pub struct RedisConfig {
+pub struct Config {
+    pub redis: Option<RedisConfig>,
+}
 
+#[derive(Debug, Deserialize)]
+pub struct RedisConfig {
     /// The URI for connecting to the Redis server. For example:
     /// <redis://127.0.0.1/>
     pub uri: String,
-
 
     pub pool_max_size: usize,
 
@@ -31,26 +34,24 @@ pub struct RedisConfig {
 
     /// Apply a maximum delay between connection attempts. The delay between attempts won't be longer than max_delay milliseconds.
     pub max_delay: Option<u64>,
-
 }
 
 const DEFAULT_CONFIG_PATH: &str = "config.toml";
 
-impl RedisConfig {
-
+impl Config {
     /// 从指定路径加载配置文件
     pub fn load_config() -> Self {
         // 获取项目根目录下的 `config.toml`
-        let config_path = env::var("APP_CONFIG_PATH").unwrap_or_else(|_|
+        let config_path = env::var("APP_CONFIG_PATH").unwrap_or_else(|_| {
             if fs::exists("redis_config.toml").is_ok() {
                 "redis_config.toml".to_string()
             } else {
                 DEFAULT_CONFIG_PATH.to_string()
             }
-        );
+        });
 
         if let Ok(config_content) = fs::read_to_string(&config_path) {
-            if let Ok(parsed_config) = toml::from_str::<RedisConfig>(&config_content) {
+            if let Ok(parsed_config) = toml::from_str::<Config>(&config_content) {
                 println!("✅ Redis配置已加载, {}", &config_path);
                 parsed_config
             } else {
@@ -59,7 +60,5 @@ impl RedisConfig {
         } else {
             panic!("❌ 读取 `{}` 失败，请确保配置文件存在", &config_path);
         }
-
     }
-
 }

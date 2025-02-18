@@ -14,10 +14,14 @@ sqlx = {workspace = true, features = ["runtime-tokio", "mysql", "chrono"]}
 chrono = {workspace = true}
 
 
+# Log
 tracing = {workspace = true}
-tracing-subscriber = {workspace = true, features = ["chrono"]}
+tracing-subscriber = {workspace = true, features = ["chrono", "json"] }
+tracing-appender = {workspace = true}
+
 
 middleware = {path = "../middleware" }
+sakura-logs = {path = "../logs"}
 sakura-macros = {path = "../macros" }
 sakura-core = {path = "../core"}
 

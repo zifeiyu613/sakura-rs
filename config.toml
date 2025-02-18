@@ -2,8 +2,19 @@
 host = '127.0.0.1'
 port = 8080
 
+[logging]
+log_level = "INFO"
+log_path = "logs"
+file_rotation = "daily"
+log_format = "json"  # 可选：json 或 plain
+
+[audit]
+enabled = true
+audit_log_level = "DEBUG"
+
 
 # ** Redis **
+[redis]
 uri="redis://:HuaJian2019testRedis@srv-redis-uat-io.kaiqi.xin:7001/0"
 pool_max_size=10
 

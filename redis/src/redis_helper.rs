@@ -7,7 +7,7 @@ pub struct RedisHelper;
 
 impl RedisHelper {
     fn get_connection(&self) -> RedisResult<PooledConnection<Client>> {
-        let conn = crate::get_redis_conn().get().map_err(|err| {
+        let conn = crate::get_redis_conn()?.get().map_err(|err| {
             RedisError::from((
                 redis::ErrorKind::IoError,
                 "get redis connection err!!!",
@@ -170,8 +170,9 @@ mod tests {
         let file_path = "redis_config.toml".to_string();
         let mut file = std::fs::File::create(&file_path).expect("Failed to create test file");
         let content = r#"
-            uri="redis://:HuaJian2019testRedis@srv-redis-uat-io.kaiqi.xin:7001/0"
-            pool_max_size=10
+         [redis]
+         uri="redis://:HuaJian2019testRedis@srv-redis-uat-io.kaiqi.xin:7001/0"
+         pool_max_size=10
         "#;
         writeln!(file, "{}", content).expect("Failed to write to test file");
         file_path

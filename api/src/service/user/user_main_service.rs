@@ -1,7 +1,7 @@
 use crate::service::user::user_main::UserMain;
-use crate::service::enums::database::DatabaseType;
 use sakura_database::pool_manager::POOL_MANAGER;
 use sqlx::{Acquire, Row};
+use sakura_api::enums::database::DatabaseType;
 
 pub async fn query_token(uid: &i64) -> Option<String> {
 

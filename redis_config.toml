@@ -6,5 +6,6 @@
 #Enabling TLS: rediss:// 127.0.0.1:6379
 #Enabling Insecure TLS: rediss:// 127.0.0.1:6379/#insecure
 #Enabling RESP3: redis:// 127.0.0.1:6379/?protocol=resp3
+[redis]
 uri="redis://:HuaJian2019testRedis@srv-redis-uat-io.kaiqi.xin:7001/0"
 pool_max_size=10
