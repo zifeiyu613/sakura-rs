@@ -18,6 +18,7 @@
       <sourceFolder url="file://$MODULE_DIR$/redis/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/mq/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/api/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/logs/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
