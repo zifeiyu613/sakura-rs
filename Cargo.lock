@@ -2713,6 +2713,8 @@ dependencies = [
  "strum_macros",
  "tokio",
  "toml",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

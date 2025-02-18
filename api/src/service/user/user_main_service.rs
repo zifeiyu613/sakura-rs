@@ -1,11 +1,11 @@
 use crate::service::user::user_main::UserMain;
-
-use sakura_database::pool_manager::{DatabaseType, POOL_MANAGER};
+use crate::service::enums::database::DatabaseType;
+use sakura_database::pool_manager::POOL_MANAGER;
 use sqlx::{Acquire, Row};
 
 pub async fn query_token(uid: &i64) -> Option<String> {
 
-    let pool = POOL_MANAGER.get_mysql_pool(DatabaseType::Phoenix).await.unwrap();
+    let pool = POOL_MANAGER.get_mysql_pool(DatabaseType::Phoenix.as_str()).await.unwrap();
 
     // ✅ `Arc<Pool<MySql>>` 需要解引用
     let pool = &*pool;
@@ -26,7 +26,7 @@ pub async fn query_token(uid: &i64) -> Option<String> {
 
 // 1482675766000
 pub async fn query_all(timestamp: u64) -> Vec<UserMain> {
-    let mut conn = POOL_MANAGER.get_mysql_connection(DatabaseType::Phoenix).await.unwrap();
+    let mut conn = POOL_MANAGER.get_mysql_connection(DatabaseType::Phoenix.as_str()).await.unwrap();
 
     let mut tx = conn.begin().await.unwrap(); // 开启事务
 

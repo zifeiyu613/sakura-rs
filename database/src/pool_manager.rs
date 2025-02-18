@@ -6,7 +6,7 @@ use sqlx::{MySql, Pool};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
-
+use tracing::info;
 // pub enum DatabasePool {
     // Postgres(Pool<Postgres>),
     // MySql(Pool<MySql>),
@@ -104,7 +104,7 @@ impl PoolManager {
                 // 5. 将池插入到共享的池管理器中
                 let mut pools = self.mysql_pools.write().unwrap();
                 pools.insert(db_name.to_string(), arc_pool.clone());
-
+                info!("Loaded mysql pool [{}] success!", db_name);
                 return Ok(arc_pool);
             }
         }
