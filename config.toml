@@ -1,0 +1,41 @@
+[hxy]
+host = '127.0.0.1'
+port = 8080
+
+
+# ** Redis **
+uri="redis://:HuaJian2019testRedis@srv-redis-uat-io.kaiqi.xin:7001/0"
+pool_max_size=10
+
+
+# ** MQ **
+[rabbit]
+uri="amqp://admin:YR888888@srv-rbtmq-uat-io.kaiqi.xin:5672/%2f"
+pool_max_size=10
+
+
+# ** MYSQL 数据库 **
+[databases]
+[databases.phoenix]
+url = "mysql://srvjava_uat:Test2018RDBSrvjava1210@rm-m5eu9o0h47352viavio.mysql.rds.aliyuncs.com:3306/phoenix?useUnicode=true&characterEncoding=utf8&allowMultiQueries=true&serverTimezone=GMT%2B8"
+max_connections = 10
+idle_timeout = 60
+
+[databases.huajian_activity]
+url = "mysql://srvjava_uat:Test2018RDBSrvjava1210@rm-m5eu9o0h47352viavio.mysql.rds.aliyuncs.com:3306/sakura_huajian_activity?useUnicode=true&characterEncoding=utf8&allowMultiQueries=true&serverTimezone=GMT%2B8"
+max_connections = 10
+idle_timeout = 60
+
+[databases.huajian_live]
+url = "mysql://srvjava_uat:Test2018RDBSrvjava1210@rm-m5eu9o0h47352viavio.mysql.rds.aliyuncs.com:3306/sakura_huajian_live?useUnicode=true&characterEncoding=utf8&allowMultiQueries=true&serverTimezone=GMT%2B8"
+max_connections = 10
+idle_timeout = 60
+
+[databases.huajian_user]
+url = "mysql://srvjava_uat:Test2018RDBSrvjava1210@rm-m5eu9o0h47352viavio.mysql.rds.aliyuncs.com:3306/phoenix?useUnicode=true&characterEncoding=utf8&allowMultiQueries=true&serverTimezone=GMT%2B8"
+max_connections = 10
+idle_timeout = 60
+
+#huajian_activity = { url = "mysql://srvjava_uat:Test2018RDBSrvjava1210@rm-m5eu9o0h47352viavio.mysql.rds.aliyuncs.com:3306/sakura_huajian_activity?useUnicode=true&characterEncoding=utf8&allowMultiQueries=true&serverTimezone=GMT%2B8", max_connections = 15, idle_timeout = 60 }
+#huajian_live = { url = "mysql://srvjava_uat:Test2018RDBSrvjava1210@rm-m5eu9o0h47352viavio.mysql.rds.aliyuncs.com:3306/sakura_huajian_live?useUnicode=true&characterEncoding=utf8&allowMultiQueries=true&serverTimezone=GMT%2B8", max_connections = 10, idle_timeout = 60 }
+#huajian_user = { url = "mysql://user:password@localhost/huajian_user", max_connections = 20, idle_timeout = 60 }  # ✅ 只需要增加新数据库配置
