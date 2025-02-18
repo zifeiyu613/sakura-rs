@@ -2780,18 +2780,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sakura-service"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "once_cell",
- "sakura-database",
- "sakura-redis",
- "sqlx",
- "tokio",
-]
-
-[[package]]
 name = "salsa20"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
