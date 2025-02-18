@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "actix-code",
     "api",
+    "cli",
     "core",
     "macros",
     "middleware",
