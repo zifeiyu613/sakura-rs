@@ -10,7 +10,7 @@ members = [
     "logs",
     "mq",
     "redis",
-    "database",
+    "database", "crates/common", "crates/config", "crates/errors", "crates/mq", "crates/redis", "crates/web-core", "crates/database",
 ]
 
 [workspace.package]
