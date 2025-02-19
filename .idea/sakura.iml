@@ -20,6 +20,13 @@
       <sourceFolder url="file://$MODULE_DIR$/api/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/logs/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/cli/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/common/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/config/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/database/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/errors/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/mq/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/redis/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/web-core/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
