@@ -1,6 +1,11 @@
-[hxy]
-host = '127.0.0.1'
-port = 8080
+# 默认配置示例
+[service]
+name = "sakura-api"
+port = 8090
+base_dir = "/Users/will/RustroverProjects/sakura/temp/webctl"
+bin_path = "/Users/will/RustroverProjects/sakura/target/debug"
+# 可选的自定义配置文件
+custom_config = "/Users/will/RustroverProjects/sakura/config.toml"
 
 [logging]
 log_level = "INFO"

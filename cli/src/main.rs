@@ -1,8 +1,13 @@
+mod config;
+mod service;
+
 use clap::{Parser, Subcommand};
 use std::{env, path::PathBuf, process::exit, str};
+use anyhow::{Context, Error};
 use tokio::process::Command;
 use log::{info, warn, error};
-
+use crate::config::ServiceConfig;
+use crate::service::{ServiceManager, ServiceStatus};
 
 #[derive(Parser, Debug)]
 #[command(name = "webctl")]
@@ -23,6 +28,10 @@ enum Commands {
         /// 端口号（默认 8080）
         #[arg(short, long, default_value_t = 8080)]
         port: u16,
+
+        /// 以守护进程模式运行
+        #[arg(short, long, default_value_t = false)]
+        daemon: bool,
 
         /// 配置文件路径
         #[arg(short, long)]
@@ -57,7 +66,7 @@ enum Commands {
 /// ***usage：***
 /// ```shell
 /// # 启动服务（默认端口 8080）
-/// cargo run -- start --name my_service --port 9090 --config /etc/my_config.toml
+/// cargo run -- start --name sakura-api --port 9090 --config setting.toml
 ///
 /// # 使用环境变量
 /// export WEB_SERVICE_CONFIG=/etc/web_service.toml
@@ -74,45 +83,94 @@ enum Commands {
 /// ```
 #[tokio::main]
 async fn main() {
+    env_logger::init();
+
     let cli = Cli::parse();
 
-    match cli.command {
-        Commands::Start { name, port, config } => {
-            let config_path = get_config_path(config);
-            info!("启动服务: {} (端口: {}, 配置文件: {})", name, port, config_path.display());
-
-            if let Err(e) = start_service(&name, port, &config_path).await {
-                error!("启动失败: {}", e);
-                exit(1);
-            }
+    if let Err(e) = match cli.command {
+        Commands::Start { name, port, daemon, config } => {
+            handle_start(&name, port, daemon, config).await.unwrap();
+            Ok(())
         }
-        Commands::Stop { name } => {
-            info!("停止服务: {}", name);
-            if let Err(e) = stop_service(&name).await {
-                error!("停止失败: {}", e);
-                exit(1);
-            }
-        }
-        Commands::Restart { name } => {
-            info!("重启服务: {}", name);
-            if let Err(e) = restart_service(&name).await {
-                error!("重启失败: {}", e);
-                exit(1);
-            }
-        }
-        Commands::Status { name } => {
-            info!("查询服务状态: {}", name);
-            match check_service_status(&name).await {
-                Ok(true) => println!("✅ {} 运行中", name),
-                Ok(false) => println!("❌ {} 未运行", name),
-                Err(e) => {
-                    error!("查询失败: {}", e);
-                    exit(1);
-                }
-            }
-        }
+        Commands::Stop { name } => handle_stop(&name).await,
+        Commands::Restart { name } => handle_restart(&name).await,
+        Commands::Status { name } => handle_status(&name).await,
+    } {
+        error!("操作失败: {}", e);
+        exit(1);
     }
 }
+
+
+
+/// 服务启动处理
+async fn handle_start(name: &str, port: u16, daemon: bool, config: Option<String>) -> Result<(), Error> {
+    let config = ServiceConfig::load(name, config)?;
+    let service = ServiceManager::new(name, port, config);
+
+    service.prepare_environment()
+        .context("准备运行环境失败")?;
+
+    if daemon {
+        service.start_daemon().await
+            .context("守护进程启动失败")?;
+    } else {
+        service.start_foreground().await
+            .context("前台进程启动失败")?;
+    }
+
+    info!("✅ {} 启动成功 (端口: {})", name, port);
+    Ok(())
+}
+
+/// 服务停止处理
+async fn handle_stop(name: &str) -> Result<(), Error> {
+    let service = ServiceManager::from_existing(name)
+        .context("服务不存在")?;
+
+    service.stop()
+        .await
+        .context("停止服务失败")?;
+
+    info!("✅ {} 停止成功", name);
+    Ok(())
+}
+
+
+/// 服务重启处理
+async fn handle_restart(name: &str) -> Result<(), Error> {
+    let service = ServiceManager::from_existing(name)
+        .context("服务不存在")?;
+
+    service.restart()
+        .await
+        .context("重启服务失败")?;
+
+    info!("✅ {} 重启成功", name);
+    Ok(())
+}
+
+/// 服务状态查询
+async fn handle_status(name: &str) -> Result<(), Error> {
+    match ServiceManager::check_status(name).await {
+        ServiceStatus::Running(pid, port) => {
+            println!("✅ {} 运行中 (PID: {}, 端口: {})", name, pid, port);
+            Ok(())
+        }
+        ServiceStatus::Stopped => {
+            println!("❌ {} 未运行", name);
+            Ok(())
+        }
+        ServiceStatus::Error(e) => Err(e),
+    }
+}
+
+
+//**************************************************************************************************
+
+
+
+
 
 /// **获取配置路径**
 fn get_config_path(config: Option<String>) -> PathBuf {
@@ -124,6 +182,7 @@ fn get_config_path(config: Option<String>) -> PathBuf {
             .unwrap_or_else(|_| PathBuf::from("./config.toml"))
     }
 }
+
 
 /// **启动服务**
 async fn start_service(name: &str, port: u16, config_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {

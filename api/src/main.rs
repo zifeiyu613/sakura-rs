@@ -1,6 +1,7 @@
 pub mod controllers;
 pub mod service;
 
+use std::env;
 use crate::controllers::{
     test_controller::test_controller_config, user_controller::user_controller_config,
 };
@@ -15,6 +16,8 @@ pub async fn main() {
 
     // init_logger();
     init_logging();
+
+    let port = env::var("port").map_or_else(8080);
 
     let addrs = ("127.0.0.1", 8080);
 
