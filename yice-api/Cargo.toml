@@ -27,3 +27,4 @@ redis = {path = "../crates/redis"}
 middleware = {path = "../crates/middleware"}
 macros = {path = "../crates/macros"}
 logs = {path = "../crates/logs"}
+web-core = {path = "../crates/web-core"}

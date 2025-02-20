@@ -50,7 +50,7 @@ pub fn builder_macro_impl(input: TokenStream) -> TokenStream {
 
     let builder_fields = fields.iter().map(|field| {
         let ident = field.ident.as_ref().unwrap();
-        let ty = &field.ty;
+        // let ty = &field.ty;
         quote! {
             #ident: None
         }
