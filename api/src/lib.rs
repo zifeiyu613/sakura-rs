@@ -1,7 +1,7 @@
 pub mod enums;
 
 pub use actix_web::{get, web, App, Either, Error, HttpResponse, HttpServer, Responder};
-use sakura_core::response::Response;
+use common::response::Response;
 use tracing::instrument::WithSubscriber;
 use tracing_subscriber::prelude::*;
 

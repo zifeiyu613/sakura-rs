@@ -1,5 +1,0 @@
-#URL format: amqp://[用户名][:密码@][主机][:端口][/虚拟机]
-
-[rabbit]
-uri="amqp://admin:YR888888@srv-rbtmq-uat-io.kaiqi.xin:5672/%2f"
-pool_max_size=10

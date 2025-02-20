@@ -1,0 +1,6 @@
+[package]
+name = "yice-api"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]

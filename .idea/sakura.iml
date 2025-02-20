@@ -8,13 +8,10 @@
       <sourceFolder url="file://$MODULE_DIR$/service/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/actix-code/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/middleware/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/tests/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/database/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/macros/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/macros/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/redis/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/mq/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/api/tests" isTestSource="true" />
@@ -27,6 +24,12 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/mq/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/redis/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/web-core/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/logs/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/macros/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/macros/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/middleware/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sakura-cli/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/yice-api/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

@@ -3,18 +3,12 @@ resolver = "2"
 members = [
     "actix-code",
     "api",
-    "cli",
-    "core",
-    "macros",
-    "middleware",
-    "logs",
-    "mq",
-    "redis",
-    "database", "crates/common", "crates/config", "crates/errors", "crates/mq", "crates/redis", "crates/web-core", "crates/database",
+    "yice-api",
+    "sakura-cli",
+    "crates/*",
 ]
 
 [workspace.package]
-name = "sakura"
 version = "0.1.0"
 edition = "2021"
 
@@ -23,6 +17,7 @@ edition = "2021"
 actix-web = "4"
 actix-http = "3"
 futures = "0.3"
+futures-util = "0.3"
 
 sqlx = { version = "0.8", features = ["runtime-tokio", "mysql", "chrono"] }
 tokio = { version = "1", features = ["full"] }
@@ -31,7 +26,6 @@ redis = {version = "0", features = ["r2d2"]}
 r2d2 = "0.8.10"
 
 toml = "0.8"
-envy = "0.4.2"
 clap = "4"
 strum = "0.27"
 strum_macros = "0.27"
@@ -75,7 +69,7 @@ lapin = "2.5.0"
 deadpool-lapin = "0.12"
 async-trait = "0.1"
 
-
+uuid = { version = "1.0", features = ["v4"] }
 reqwest = "0.12"
 
 # Rust 中的 宏（macro）开发生态系统的核心组件，主要用于 自定义派生宏（procedural macro） 和 代码生成
@@ -84,4 +78,5 @@ quote = "1.0"                                   # 动态生成 Rust 代码, 用�
 proc-macro2 = "1.0"                             # 提供 TokenStream，支持过程宏的开发, 底层基础设施，支持跨平台 Token 流操作
 darling = "0.20"                                # 简化属性解析, 用于解析自定义宏属性
 
+# 开发测试 临时文件
 tempfile = "3"

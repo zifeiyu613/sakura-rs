@@ -1,0 +1,18 @@
+[package]
+name = "middleware"
+version = {workspace = true}
+edition = {workspace = true}
+
+[dependencies]
+actix-web = {workspace = true}
+actix-http = {workspace = true}
+actix-multipart = "0.7.2"
+
+futures = {workspace = true}
+
+serde = {workspace = true, features = ["derive"]}
+serde_json = {workspace = true}
+serde_urlencoded = { workspace = true }
+uuid = {workspace = true }
+
+common = {path = "../common"}

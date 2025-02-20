@@ -1,5 +1,5 @@
 use crate::service::user::user_main::UserMain;
-use sakura_database::pool_manager::POOL_MANAGER;
+use database::pool_manager::POOL_MANAGER;
 use sqlx::{Acquire, Row};
 use sakura_api::enums::database::DatabaseType;
 
@@ -69,6 +69,9 @@ mod tests {
     use super::*;
     #[tokio::test]
     async fn test_query_token() {
+
+
+
         let uid = 2;
         let token = query_token(&uid).await;
 

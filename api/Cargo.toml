@@ -13,17 +13,19 @@ serde_json = {workspace = true}
 sqlx = {workspace = true, features = ["runtime-tokio", "mysql", "chrono"]}
 chrono = {workspace = true}
 
+clap = {workspace = true}
 
 # Log
 tracing = {workspace = true}
 tracing-subscriber = {workspace = true, features = ["chrono", "json"] }
-tracing-appender = {workspace = true}
+
+common = {path = "../crates/common"}
+config = {path = "../crates/config"}
+database = {path = "../crates/database"}
+mq = {path = "../crates/mq"}
+redis = {path = "../crates/redis"}
+middleware = {path = "../crates/middleware"}
+macros = {path = "../crates/macros"}
+logs = {path = "../crates/logs"}
 
 
-middleware = {path = "../middleware" }
-sakura-logs = {path = "../logs"}
-sakura-macros = {path = "../macros" }
-sakura-core = {path = "../core"}
-
-#sakura-redis = {path = "../redis"}
-sakura-database={path="../database"}
