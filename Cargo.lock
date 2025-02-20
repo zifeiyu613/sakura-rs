@@ -4776,6 +4776,25 @@ dependencies = [
 [[package]]
 name = "yice-api"
 version = "0.1.0"
+dependencies = [
+ "actix-web",
+ "chrono",
+ "clap",
+ "common",
+ "config 0.1.0",
+ "database",
+ "logs",
+ "macros",
+ "middleware",
+ "mq",
+ "redis 0.1.0",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "yoke"
