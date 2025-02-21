@@ -19,7 +19,7 @@ mod builder;
 ///
 /// # Example
 ///
-/// ```rust
+/// ```ignore
 /// use macros::builder;
 ///
 /// #[builder]

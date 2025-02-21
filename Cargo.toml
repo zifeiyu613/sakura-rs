@@ -12,6 +12,8 @@ members = [
 version = "0.1.0"
 edition = "2021"
 
+#[lints]
+#workspace = { reference = "https://doc.rust-lang.org/rust-by-example/", level = "warn" }
 
 [workspace.dependencies]
 actix-web = "4"

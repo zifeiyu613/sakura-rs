@@ -58,7 +58,8 @@ impl WebServer {
                 app = app.configure(|cfg| service.configure(cfg));
             }
 
-            app.wrap(AuthMiddleware) // JWT 认证
+            // app.wrap(AuthMiddleware) // JWT 认证
+            app
         })
             .bind(("0.0.0.0", port))?
             .run()
@@ -91,63 +92,63 @@ impl HealthService {
     }
 }
 
-/// **JWT 认证**
-#[derive(Debug, Serialize, Deserialize)]
-struct Claims {
-    sub: String,
-    exp: usize,
-}
+// /// **JWT 认证**
+// #[derive(Debug, Serialize, Deserialize)]
+// struct Claims {
+//     sub: String,
+//     exp: usize,
+// }
 
-/// **JWT 认证中间件**
-struct AuthMiddleware;
-impl<S, B> Transform<S, ServiceRequest> for AuthMiddleware
-where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
-    S::Future: 'static,
-{
-    type Response = ServiceResponse<B>;
-    type Error = Error;
-    type InitError = ();
-    type Transform = AuthMiddlewareService<S>;
-    type Future = Ready<Result<Self::Transform, Self::InitError>>;
+// /// **JWT 认证中间件**
+// struct AuthMiddleware;
+// impl<S, B> Transform<S, ServiceRequest> for AuthMiddleware
+// where
+//     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+//     S::Future: 'static,
+// {
+//     type Response = ServiceResponse<B>;
+//     type Error = Error;
+//     type InitError = ();
+//     type Transform = AuthMiddlewareService<S>;
+//     type Future = Ready<Result<Self::Transform, Self::InitError>>;
+//
+//     fn new_transform(&self, service: S) -> Self::Future {
+//         ok(AuthMiddlewareService { service })
+//     }
+// }
 
-    fn new_transform(&self, service: S) -> Self::Future {
-        ok(AuthMiddlewareService { service })
-    }
-}
+// struct AuthMiddlewareService<S> {
+//     service: S,
+// }
 
-struct AuthMiddlewareService<S> {
-    service: S,
-}
-
-impl<S, B> Service<ServiceRequest> for AuthMiddlewareService<S>
-where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + Clone + 'static,
-    S::Future: 'static,
-{
-    type Response = ServiceResponse<B>;
-    type Error = Error;
-    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
-
-    forward_ready!(service);
-
-    fn call(&self, req: ServiceRequest) -> Self::Future {
-        let headers = req.headers().clone();
-        let token = headers.get("Authorization").and_then(|h| h.to_str().ok());
-
-        if let Some(token) = token {
-            if let Some(auth) = token.strip_prefix("Bearer ") {
-                let decoding_key = DecodingKey::from_secret(b"secret");
-                if decode::<Claims>(auth, &decoding_key, &Validation::default()).is_ok() {
-                    return Box::pin(self.service.call(req));
-                }
-            }
-        }
-
-        let res = req.into_response(HttpResponse::Unauthorized().finish());
-        Box::pin(async { Ok(res.map_into_right_body()) })
-    }
-}
+// impl<S, B> Service<ServiceRequest> for AuthMiddlewareService<S>
+// where
+//     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + Clone + 'static,
+//     S::Future: 'static,
+// {
+//     type Response = ServiceResponse<B>;
+//     type Error = Error;
+//     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
+//
+//     forward_ready!(service);
+//
+//     fn call(&self, req: ServiceRequest) -> Self::Future {
+//         let headers = req.headers().clone();
+//         let token = headers.get("Authorization").and_then(|h| h.to_str().ok());
+//
+//         if let Some(token) = token {
+//             if let Some(auth) = token.strip_prefix("Bearer ") {
+//                 let decoding_key = DecodingKey::from_secret(b"secret");
+//                 if decode::<Claims>(auth, &decoding_key, &Validation::default()).is_ok() {
+//                     return Box::pin(self.service.call(req));
+//                 }
+//             }
+//         }
+//
+//         let res = req.into_response(HttpResponse::Unauthorized().finish());
+//         Box::pin(async { Ok(res.map_into_right_body()) })
+//     }
+// }
 
 /// **请求解密**
 async fn decrypt_request(req: web::Json<String>) -> impl Responder {

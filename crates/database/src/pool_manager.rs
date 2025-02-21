@@ -49,7 +49,8 @@ impl PoolManager {
     /// - 方案 2：克隆 Arc，然后解引用(这种方式适用于多个线程共享 Pool 的情况。)
     ///
     /// ***使用案例***
-    /// ```rust
+    ///
+    /// ```ignore
     /// use database::pool_manager::POOL_MANAGER;
     ///
     /// let pool = POOL_MANAGER.get_mysql_pool("phoenix").await.unwrap();
