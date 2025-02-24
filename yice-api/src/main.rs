@@ -3,11 +3,10 @@ mod service;
 mod repository;
 mod controller;
 
-use inventory::collect;
 use web_core::web_service::{WebServerManager, WebService};
 
 
-#[tokio::main]
+#[actix_web::main]
 async fn main() {
     let manager = WebServerManager::new(8080);
     manager.start_server().await.expect("TODO: panic message");

@@ -70,7 +70,7 @@ fn get_command_param() -> (u16, String) {
     let config_path = matches
         .get_one::<String>("config")
         .unwrap_or(&String::from(
-            "/Users/will/RustroverProjects/sakura/api/config.toml",
+            "/Users/will/RustroverProjects/sakura/sakura-api/config.toml",
         ))
         .clone();
     (*port, config_path)
