@@ -32,7 +32,7 @@ pub(crate) fn init_redis_pool() -> Pool<Client>{
     // };
 
     // 不记录敏感信息，如密码等
-    let masked_uri = if let Some(uri) = redis_config.uri.strip_prefix("redis://:") {
+    let masked_uri = if let Some(_uri) = redis_config.uri.strip_prefix("redis://:") {
         "redis://:*****"
     } else {
         redis_config.uri.as_str()

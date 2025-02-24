@@ -123,6 +123,13 @@ async fn login_user(user: web::Json<serde_json::Value>) -> Either<web::Json<ApiR
     }
 }
 
+fn config(cfg: &mut web::ServiceConfig) {
+    cfg.service(
+        web::resource("/app")
+            .route(web::get().to(|| async { HttpResponse::Ok().body("app") }))
+            .route(web::head().to(HttpResponse::MethodNotAllowed)),
+    );
+}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -141,23 +148,6 @@ async fn main() -> std::io::Result<()> {
         counter: Mutex::new(0),
     });
 
-    // let token = user_main_service::query_token(2_u64).await;
-
-    // let user_main_list = user_main_service::query_all(1482675766000_u64).await;
-
-    // user_main_list.iter().for_each(|x| {
-    //     println!("{:?}", x);
-    // });
-
-    // match token {
-    //     Some(token) => {
-    //         println!("token = {}", &token);
-    //         assert_eq!(&token, "fb8427e74ac3f7a0d6bb8e58e7a799ad");
-    //     }
-    //     _ => {
-    //         println!("token is null");
-    //     }
-    // }
 
     let addrs = "127.0.0.1:8088";
 
@@ -169,6 +159,8 @@ async fn main() -> std::io::Result<()> {
             // .wrap(middleware::request_logger::RequestLogger::new(true, true))
             // .wrap(middleware::request_logger_v1::RequestLogger)
             .service(handle_json)
+            .configure(config)
+            // .configure(config)
             .route("/", web::get().to(index))
             .route(
                 "/code",

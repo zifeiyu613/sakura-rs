@@ -1,15 +1,16 @@
 # 默认配置示例
 [service]
+name = "sakura-api"
 port = 8090
-base_dir = "/Users/will/RustroverProjects/sakura/temp/webctl"
+base_dir = "/Users/will/RustroverProjects/sakura/assets/webctl"
 bin_path = "/Users/will/RustroverProjects/sakura/target/debug"
 # 可选的自定义配置文件
-custom_config = "/Users/will/RustroverProjects/sakura/config.toml"
+custom_config = "/Users/will/RustroverProjects/sakura/sakura-api/config.toml"
 
 [log]
 [log.logging]
 log_level = "INFO"
-log_path = "./temp/logs"
+log_path = "./assets/logs/sa"
 file_rotation = "daily"
 log_format = "json"  # 可选：json 或 plain
 
@@ -30,7 +31,7 @@ uri="amqp://admin:YR888888@srv-rbtmq-uat-io.kaiqi.xin:5672/%2f"
 pool_max_size=10
 
 
-# ** MYSQL 数据库 **
+# ** MYSQL 数据库 支持多数据源 **
 [mysql]
 [mysql.phoenix]
 url = "mysql://srvjava_uat:Test2018RDBSrvjava1210@rm-m5eu9o0h47352viavio.mysql.rds.aliyuncs.com:3306/phoenix?useUnicode=true&characterEncoding=utf8&allowMultiQueries=true&serverTimezone=GMT%2B8"

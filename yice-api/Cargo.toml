@@ -14,6 +14,7 @@ sqlx = {workspace = true, features = ["runtime-tokio", "mysql", "chrono"]}
 chrono = {workspace = true}
 
 clap = {workspace = true}
+inventory = {workspace = true}
 
 # Log
 tracing = {workspace = true}
@@ -25,6 +26,6 @@ database = {path = "../crates/database"}
 mq = {path = "../crates/mq"}
 redis = {path = "../crates/redis"}
 middleware = {path = "../crates/middleware"}
-macros = {path = "../crates/macros"}
+sakura-macros = {path = "../crates/macros"}
 logs = {path = "../crates/logs"}
 web-core = {path = "../crates/web-core"}

@@ -1,10 +1,10 @@
 # 默认配置示例
 [service]
 port = 8090
-base_dir = "/Users/will/RustroverProjects/sakura/temp/webctl"
+base_dir = "/Users/will/RustroverProjects/sakura/assets/webctl"
 bin_path = "/Users/will/RustroverProjects/sakura/target/debug"
 # 可选的自定义配置文件
-custom_config = "/Users/will/RustroverProjects/sakura/config.toml"
+custom_config = "/Users/will/RustroverProjects/sakura/yice-api/config.toml"
 
 [log]
 [log.logging]

@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
     "actix-code",
-    "api",
+    "sakura-api",
     "yice-api",
     "sakura-cli",
     "crates/*",
@@ -10,7 +10,8 @@ members = [
 
 [workspace.package]
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
+rust-version = "1.85"
 
 #[lints]
 #workspace = { reference = "https://doc.rust-lang.org/rust-by-example/", level = "warn" }
@@ -32,8 +33,9 @@ clap = "4"
 strum = "0.27"
 strum_macros = "0.27"
 
-
+lazy_static = {version = "1.5"}
 once_cell = { version = "1" }
+inventory = {version = "0.3"}
 
 chrono = { version = "0.4", features = ["serde"] }
 
@@ -51,7 +53,6 @@ des = { version = "0.9.0-pre.2" }
 base64 = "0.22.1"
 cbc = "0.2.0-pre.2"
 block-padding = { version = "0.4.0-rc.2" }
-inout = { version = "0.2.0-rc.3", features = ["block-padding"] }
 
 rand = "0.9.0-beta.3"
 

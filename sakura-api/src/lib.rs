@@ -1,5 +1,5 @@
-mod enums;
-mod repository;
+pub mod enums;
+pub mod repository;
 
 pub use actix_web::{get, web, App, Either, Error, HttpResponse, HttpServer, Responder};
 use common::response::Response;
