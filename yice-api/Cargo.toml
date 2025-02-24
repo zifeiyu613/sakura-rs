@@ -14,7 +14,9 @@ sqlx = {workspace = true, features = ["runtime-tokio", "mysql", "chrono"]}
 chrono = {workspace = true}
 
 clap = {workspace = true}
-inventory = {workspace = true}
+
+
+reqwest = {workspace = true}
 
 # Log
 tracing = {workspace = true}
