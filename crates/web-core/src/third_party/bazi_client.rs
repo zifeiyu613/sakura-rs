@@ -7,6 +7,8 @@ use sha1::Sha1;
 use std::collections::HashMap;
 use url::Url;
 
+const BZ_URL: &str = "https://ap-guangzhou.cloudmarket-apigw.com/services-4mq5lolqo/bazi";
+
 struct BaziClient {
     secret_id: String,
     secret_key: String,
@@ -69,8 +71,7 @@ impl BaziClient {
         query_params.insert("yearType", year_type.to_string());
 
         // 构建 URL
-        let mut url =
-            Url::parse("https://ap-guangzhou.cloudmarket-apigw.com/services-4mq5lolqo/bazi")?;
+        let mut url = Url::parse(BZ_URL)?;
         url.set_query(Some(&serde_urlencoded::to_string(&query_params)?));
 
         // 获取授权信息
@@ -96,15 +97,16 @@ mod tests {
     use super::*;
     #[tokio::test]
     async fn test_bazi_client() {
-        let client = BaziClient::new("KnK5mZKIHnT5lZPg".to_string(), "w3vWoRYczvLh9r9Ae5W1pmkjTcvN2o5G".to_string());
+        let client = BaziClient::new(
+            "KnK5mZKIHnT5lZPg".to_string(),
+            "w3vWoRYczvLh9r9Ae5W1pmkjTcvN2o5G".to_string(),
+        );
 
         let result = client
             .get_bazi_content("王", "小明", "1", "1990-01-01 12:00", 1)
-            .await.unwrap();
+            .await
+            .unwrap();
 
         println!("Bazi Content: {}", result);
-
     }
-
 }
-
