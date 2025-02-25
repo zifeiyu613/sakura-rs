@@ -1,13 +1,12 @@
-use chrono::{DateTime, Utc};
+use base64::encode;
+use chrono::{DateTime, Datelike, Timelike, Utc};
 use hmac::{Hmac, Mac};
-use sha1::Sha1;
-use base64::{encode};
 use reqwest::header::{HeaderMap, HeaderValue};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
+use sha1::Sha1;
 use std::error::Error;
-use std::collections::HashMap;
-use uuid::Uuid;
 use std::time::Duration;
+use uuid::Uuid;
 
 /// 生成授权信息
 fn get_authorization(secret_id: &str, secret_key: &str) -> Result<String, Box<dyn Error>> {
@@ -15,7 +14,7 @@ fn get_authorization(secret_id: &str, secret_key: &str) -> Result<String, Box<dy
     let sign_str = format!("x-date: {}", datetime);
 
     // 计算 HMAC-SHA1 签名
-    let mut mac = Hmac::<Sha1>::new_varkey(secret_key.as_bytes())?;
+    let mut mac = Hmac::<Sha1>::new_from_slice(secret_key.as_bytes())?;
     mac.update(sign_str.as_bytes());
     let sign = encode(&mac.finalize().into_bytes());
 
@@ -42,6 +41,7 @@ struct BaziQueryParams {
     xing: String,
     ming: String,
     sex: String,
+    #[serde(rename = "yearType")]
     year_type: String,
 }
 
@@ -105,19 +105,24 @@ async fn get_bazi_content(
     Ok(result)
 }
 
-#[tokio::main]
-async fn main() {
-    // 示例参数
-    let secret_id = "your_secret_id";
-    let secret_key = "your_secret_key";
-    let xing = "Zhang";
-    let ming = "San";
-    let sex = "1"; // 男性
-    let birthday = "1990-01-01 08:30";
-    let year_type = 1; // 阳历
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[tokio::test]
+    async fn test_get_bazi_content() {
+        // 示例参数
+        let secret_id = "KnK5mZKIHnT5lZPg";
+        let secret_key = "w3vWoRYczvLh9r9Ae5W1pmkjTcvN2o5G";
+        let xing = "林";
+        let ming = "三";
+        let sex = "1"; // 男性
+        let birthday = "1990-01-01 08:30";
+        let year_type = 1; // 阳历
 
-    match get_bazi_content(secret_id, secret_key, xing, ming, sex, birthday, year_type).await {
-        Ok(content) => println!("Bazi content: {}", content),
-        Err(e) => eprintln!("Error: {}", e),
+        match get_bazi_content(secret_id, secret_key, xing, ming, sex, birthday, year_type).await {
+            Ok(content) => println!("Bazi content: {}", content),
+            Err(e) => eprintln!("Error: {}", e),
+        }
     }
 }
+

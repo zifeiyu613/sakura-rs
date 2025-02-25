@@ -16,7 +16,8 @@ chrono = {workspace = true}
 clap = {workspace = true}
 
 
-reqwest = {workspace = true}
+reqwest = {workspace = true, features = ["json"]}
+
 
 # Log
 tracing = {workspace = true}
@@ -31,3 +32,6 @@ middleware = {path = "../crates/middleware"}
 sakura-macros = {path = "../crates/macros"}
 logs = {path = "../crates/logs"}
 web-core = {path = "../crates/web-core"}
+
+[dev-dependencies]
+inventory = {workspace = true}

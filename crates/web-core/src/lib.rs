@@ -12,6 +12,7 @@
 //!    这对于并发处理请求至关重要，可以避免数据竞争和其他并发问题。
 
 pub mod web_service;
+pub mod third_party;
 
 
 // 使用 #[service] 代替
