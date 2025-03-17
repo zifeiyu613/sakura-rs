@@ -2,7 +2,7 @@ mod app;
 mod service;
 mod repository;
 mod controller;
-mod third_party;
+
 
 use web_core::web_service::{WebServerManager, WebService};
 
