@@ -1,62 +1,155 @@
+use std::time::Duration;
+use bb8::{Pool, RunError};
+use bb8_redis::RedisConnectionManager;
 use once_cell::sync::{Lazy, OnceCell};
-use r2d2::{Error, Pool};
-use redis::{Client, ErrorKind, RedisError};
+use tokio::runtime::Runtime;
 use tracing::{error, info};
 use config::app_config::get_config;
 
 pub mod redis_helper;
 
-// 创建全局静态变量 `REDIS_POOL`
-pub(crate) static REDIS_POOL: Lazy<OnceCell<Pool<Client>>> = Lazy::new(|| {
-    OnceCell::new() // 用 `OnceCell` 来初始化
-});
 
-/// 获取 Redis 连接池的引用
-pub(crate) fn get_redis_conn() -> Result<Pool<Client>, RedisError> {
-    let pool = REDIS_POOL.get_or_init(init_redis_pool);
-    Ok(pool.clone())
+/// Redis 连接池错误类型
+#[derive(Debug, thiserror::Error)]
+pub enum RedisPoolError {
+    #[error("Failed to initialize Redis pool: {0}")]
+    InitializationError(String),
+
+    // #[error("Redis connection error: {0}")]
+    // ConnectionError(#[from] RedisError),
+
+    #[error("Pool timed out")]
+    PoolTimeout,
+
+    #[error("Pool error: {0}")]
+    PoolError(String),
+
+    #[error("Runtime error: {0}")]
+    RuntimeError(String),
+
+    #[error("Redis operator error: {0}")]
+    OperatorError(#[from] bb8_redis::redis::RedisError),
+
+    #[error("User code error: {0}")]
+    UserError(String),
+
 }
 
-/// 初始化 Redis 连接池
-pub(crate) fn init_redis_pool() -> Pool<Client>{
-    // 加载配置
-    let redis_config = get_config().unwrap().redis;
+// 实现从 RunError 到 RedisPoolError 的转换
+impl From<RunError<redis::RedisError>> for RedisPoolError {
 
-    // 确保配置中有 Redis 信息
-    // let redis_config = match redis {
-    //     Some(cfg) => cfg,
-    //     None => {
-    //         error!("配置中没有 Redis 信息");
-    //         panic!("config.redis is None")
-    //     }
-    // };
-
-    // 不记录敏感信息，如密码等
-    let masked_uri = if let Some(_uri) = redis_config.uri.strip_prefix("redis://:") {
-        "redis://:*****"
-    } else {
-        redis_config.uri.as_str()
-    };
-
-    info!("创建 Redis 连接池，URI: {}", masked_uri);
-
-    // 创建 Redis 客户端
-    let client = match Client::open(redis_config.uri) {
-        Ok(c) => c,
-        Err(e) => {
-            error!("创建 Redis 客户端失败: {}", e);
-            panic!("无法创建 Redis 客户端")
+    fn from(err: RunError<redis::RedisError>) -> Self {
+        match err {
+            RunError::User(user_err) => RedisPoolError::UserError(user_err.to_string()),
+            RunError::TimedOut => RedisPoolError::PoolTimeout
         }
-    };
+    }
+}
 
-    // 构建连接池
-    let pool = Pool::builder()
-        .max_size(redis_config.pool_max_size as u32)
-        .build(client)
-        .unwrap_or_else(|e| {
-            error!("创建 Redis 连接池失败: {}", e);
-            panic!("无法创建 Redis 连接池")
-        });
+/// Redis 连接池配置
+#[derive(Debug)]
+pub struct RedisPoolConfig {
+    pub uri: String,
+    pub max_size: u32,
+    pub min_idle: u32,
+    pub connection_timeout: Duration,
+    pub idle_timeout: Duration,
+}
 
-    pool
+
+/// Redis 连接池管理器
+#[derive(Clone)]
+pub struct RedisPoolManager {
+    pool: Pool<RedisConnectionManager>,
+}
+
+impl RedisPoolManager {
+    /// 创建新的连接池管理器实例
+    async fn new() -> Result<Self, RedisPoolError> {
+        let config = Self::get_pool_config()?;
+
+        // 打印掩码后的URI
+        let masked_uri = if let Some(_) = config.uri.strip_prefix("redis://:") {
+            "redis://:*****".to_string()
+        } else {
+            config.uri.clone()
+        };
+        info!("Initializing Redis connection pool with URI: {}", masked_uri);
+
+        let manager = RedisConnectionManager::new(&*config.uri)
+            .map_err(|e| RedisPoolError::InitializationError(e.to_string()))?;
+
+        let pool = Pool::builder()
+            .max_size(config.max_size)
+            .min_idle(Some(config.min_idle))
+            .connection_timeout(config.connection_timeout)
+            .idle_timeout(Some(config.idle_timeout))
+            .build(manager)
+            .await
+            .map_err(|e| RedisPoolError::InitializationError(e.to_string()))?;
+
+        Ok(Self { pool })
+    }
+
+    /// 获取连接池配置
+    fn get_pool_config() -> Result<RedisPoolConfig, RedisPoolError> {
+        let config = get_config().map_err(|e| RedisPoolError::InitializationError(e.to_string()))?;
+
+        Ok(RedisPoolConfig {
+            uri: config.redis.uri,
+            max_size: config.redis.pool_max_size as u32,
+            min_idle: 5,
+            connection_timeout: Duration::from_secs(10),
+            idle_timeout: Duration::from_secs(300),
+        })
+    }
+
+    /// 获取连接池引用
+    pub fn get_pool(&self) -> &Pool<RedisConnectionManager> {
+        &self.pool
+    }
+
+}
+
+// 全局静态连接池
+pub static REDIS_POOL: OnceCell<RedisPoolManager> = OnceCell::new();
+
+// 初始化函数
+pub async fn init_redis_pool() -> Result<(), RedisPoolError> {
+    if REDIS_POOL.get().is_some() {
+        return Ok(());
+    }
+
+    let manager = RedisPoolManager::new().await?;
+    REDIS_POOL
+        .set(manager)
+        .map_err(|_| RedisPoolError::InitializationError("Pool already initialized".into()))?;
+    Ok(())
+}
+
+// 获取连接池
+pub fn get_redis_pool_manager() -> Result<&'static RedisPoolManager, RedisPoolError> {
+    REDIS_POOL
+        .get()
+        .ok_or_else(|| RedisPoolError::InitializationError("Redis pool not initialized".into()))
+}
+
+
+// 使用示例
+pub async fn example_usage() -> Result<(), RedisPoolError> {
+    // 直接获取连接池（第一次调用时会自动初始化）
+    let pool = get_redis_pool_manager()?.get_pool();
+
+    // 获取连接（现在使用正确的错误转换）
+    let mut conn = pool.get().await?;  // RunError 会自动转换为 RedisPoolError
+
+    // 使用连接进行操作
+    // let _: () = redis::cmd("SET")
+    //     .arg("key")
+    //     .arg("value")
+    //     .query_async(&mut *conn)
+    //     .await
+    //     .map_err(RedisPoolError::ConnectionError)?;
+
+    Ok(())
 }

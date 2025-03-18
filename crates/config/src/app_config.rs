@@ -78,14 +78,14 @@ pub fn load_config(config_path: Option<&str>) -> Result<(), ConfigError> {
     //     env::var("APP_CONFIG_PATH").unwrap_or("config.toml".to_string()).as_str()
     // });
 
-    let mut config_builder = Config::builder()
+    let config_builder = Config::builder()
         .add_source(File::with_name(config_path))
         .add_source(Environment::with_prefix("APP")); // 支持环境变量覆盖
 
     // 尝试加载配置文件
     let config: AppConfig = config_builder
         .build()
-        .map_err(|e| ConfigError::LoadError(config_path.to_string()))?  // 使用 `ConfigError::LoadError` 错误
+        .map_err(|e| ConfigError::LoadError(e.to_string()))?  // 使用 `ConfigError::LoadError` 错误
         .try_deserialize()
         .map_err(|_| ConfigError::ParseError)?;  // 使用 `ConfigError::ParseError` 错误
 

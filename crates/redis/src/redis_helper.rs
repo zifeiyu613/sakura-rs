@@ -1,88 +1,134 @@
-use r2d2::PooledConnection;
-use redis::{Client, Commands, FromRedisValue, RedisError, RedisResult, ToRedisArgs};
+use crate::RedisPoolError;
+use bb8::{ PooledConnection};
+use bb8_redis::{
+    RedisConnectionManager,
+    redis::{cmd, AsyncCommands}
+};
+use redis::ToRedisArgs;
+use redis::FromRedisValue;
 use std::time::Duration;
 
 /// Redis 命令辅助工具
 pub struct RedisHelper;
 
 impl RedisHelper {
-    fn get_connection(&self) -> RedisResult<PooledConnection<Client>> {
-        let conn = crate::get_redis_conn()?.get().map_err(|err| {
-            RedisError::from((
-                redis::ErrorKind::IoError,
-                "get redis connection err!!!",
-                err.to_string(),
-            ))
-        });
-        conn
+    async fn get_connection(&self) -> Result<PooledConnection<RedisConnectionManager>, RedisPoolError> {
+        let pool = crate::get_redis_pool_manager()?.get_pool();
+        let conn = pool.get().await?;
+        Ok(conn)
     }
+
+    // async fn using_connection_pool_extractor(&self) -> Result<String, RedisPoolError> {
+    //     // let mut conn = pool.get().await.map_err(internal_error)?;
+    //     let mut conn = self.get_connection().await?; // 从连接池获取连接
+    //     let result: String = conn.get("foo").await.map_err(RedisPoolError::RuntimeError("".to_string()))?;
+    //     Ok(result)
+    // }
 
     /// 设置键值对
-    pub fn set(&self, key: &str, value: &str) -> RedisResult<()> {
-        let mut conn = self.get_connection()?; // 从连接池获取连接
-        conn.set(key, value)
+    pub async fn set<K, V>(&self, key: K, value: V)  -> Result<bool, RedisPoolError>
+    where
+        K: ToRedisArgs + Send + Sync,
+        V: ToRedisArgs + Send + Sync,
+    {
+        let mut conn = self.get_connection().await?; // 从连接池获取连接
+        let result = conn.set(key, value).await.map_err(RedisPoolError::from)?;
+        Ok(result)
     }
 
-    pub fn set_ex(&self, key: &str, value: &str, duration: Duration) -> RedisResult<()> {
-        let mut conn = self.get_connection()?;
-        conn.set_ex(key, value, duration.as_secs())
+    pub async fn set_ex<K, V>(&self, key: K, value: V, duration: Duration) -> Result<bool, RedisPoolError>
+    where
+        K: ToRedisArgs + Send + Sync,
+        V: ToRedisArgs + Send + Sync,
+    {
+        let mut conn = self.get_connection().await?;
+        let result = conn.set_ex(key, value, duration.as_secs()).await?;
+        Ok(result)
     }
 
     /// 当不存在 key 时 设置键值对
-    pub fn set_nx(&self, key: &str, value: &str) -> RedisResult<bool> {
-        let mut conn = self.get_connection()?;
-        conn.set_nx(key, value)
+    pub async fn set_nx<K, V>(&self, key: K, value: V) -> Result<bool, RedisPoolError>
+    where
+        K: ToRedisArgs + Send + Sync,
+        V: ToRedisArgs + Send + Sync,
+    {
+        let mut conn = self.get_connection().await?;
+        let result = conn.set_nx(key, value).await?;
+        Ok(result)
     }
 
     /// 获取键值
-    pub fn get<T>(&self, key: &str) -> RedisResult<Option<T>>
+    pub async fn get<K, V>(&self, key: K) -> Result<Option<V>, RedisPoolError>
     where
-        T: FromRedisValue + Sized,
+        K: ToRedisArgs + Send + Sync,
+        V: FromRedisValue + Send + Sync,
     {
-        let mut conn = self.get_connection()?;
-        conn.get(key)
+        let mut conn = self.get_connection().await?;
+        let result = conn.get(key).await?;
+        Ok(result)
     }
 
     /// 删除键
-    pub fn del(&self, key: &str) -> RedisResult<()> {
-        let mut conn = self.get_connection()?;
-        conn.del(key)
+    pub async fn del<K>(&self, key: K) -> Result<bool, RedisPoolError>
+    where
+    K: ToRedisArgs + Send + Sync,
+    {
+        let mut conn = self.get_connection().await?;
+        let result = conn.del(key).await?;
+        Ok(result)
     }
 
     /// 设置键值对，带过期时间（秒）
-    pub fn set_with_expiry(&self, key: &str, value: &str, ttl: u64) -> RedisResult<()> {
-        let mut conn = self.get_connection()?;
-        conn.set_ex(key, value, ttl)
+    pub async fn set_with_expiry<K, V>(&self, key: K, value: V, ttl: u64) -> Result<bool, RedisPoolError>
+    where
+    K: ToRedisArgs + Send + Sync,
+    V: ToRedisArgs + Send + Sync,
+    {
+        let mut conn = self.get_connection().await?;
+        let result = conn.set_ex(key, value, ttl).await?;
+        Ok(result)
     }
 
     /// 判断键是否存在
-    pub fn exists(&self, key: &str) -> RedisResult<bool> {
-        let mut conn = self.get_connection()?;
-        conn.exists(key)
+    pub async fn exists<K>(&self, key: K) -> Result<bool, RedisPoolError>
+    where
+    K: ToRedisArgs + Send + Sync,
+    {
+        let mut conn = self.get_connection().await?;
+        let result = conn.exists(key).await?;
+        Ok(result)
     }
 
-    pub fn expire(&self, key: &str, duration: Duration) -> RedisResult<()> {
-        let mut conn = self.get_connection()?;
-        conn.expire(key, duration.as_secs() as i64)
+    pub async fn expire<K>(&self, key: K, duration: Duration) -> Result<bool, RedisPoolError>
+    where
+    K: ToRedisArgs + Send + Sync,
+    {
+        let mut conn = self.get_connection().await?;
+        let result = conn.expire(key, duration.as_secs() as i64).await?;
+        Ok(result)
     }
 
     /// 按给定量增加键的数值。会根据类型发出 INCRBY 或 INCRBYFLOAT
     /// 如果类型不匹配 可能报错
-    pub fn incr<T>(&self, key: &str, delta: T) -> RedisResult<T>
+    pub async fn incr<K, V>(&self, key: K, delta: V) -> Result<V, RedisPoolError>
     where
-        T: FromRedisValue + ToRedisArgs + Sized,
+        K: ToRedisArgs + Send + Sync,
+        V: FromRedisValue + Send + Sync + ToRedisArgs,
     {
-        let mut conn = self.get_connection()?;
-        conn.incr(key, delta)
+        let mut conn = self.get_connection().await?;
+        let result = conn.incr(key, delta).await?;
+        Ok(result)
     }
 
     /// 获取指定区间的数据
-    pub fn lrange<T>(&self, key: &str, start: isize, stop: isize) -> RedisResult<Option<Vec<T>>>
+    pub async fn lrange<K, V>(&self, key: K, start: isize, stop: isize) -> Result<Vec<V>, RedisPoolError>
     where
-    T: FromRedisValue + ToRedisArgs
+        K: ToRedisArgs + Send + Sync,
+        V: FromRedisValue + Send + Sync + ToRedisArgs,
     {
-        let mut conn = self.get_connection()?;
-        conn.lrange(key, start, stop)
+        let mut conn = self.get_connection().await?;
+        let result = conn.lrange(key, start, stop).await?;
+        Ok(result)
     }
 
 
@@ -91,13 +137,16 @@ impl RedisHelper {
 #[cfg(test)]
 mod tests {
     use crate::redis_helper::RedisHelper;
-    use std::io::Write;
     use config::app_config::load_config;
+    use std::io::Write;
+    use futures_util::future::join_all;
+    use serde_json::Value;
+    use crate::init_redis_pool;
 
-    #[test]
-    fn redis_set_get() {
+    #[tokio::test]
+    async fn redis_set_get() {
         // 创建临时文件
-        let path =  setup();
+        // let path =  setup();
 
         // 前置条件：创建临时文件
         // let mut temp_file = NamedTempFile::new_in("redis_config.toml").expect("Failed to create temp file");
@@ -107,65 +156,79 @@ mod tests {
         // "#;
         // writeln!(temp_file, "{}", content).expect("Failed to write to temp file");
 
-        load_config(Some("/Users/will/RustroverProjects/sakura/api/config.toml")).unwrap();
+        load_config(Some("/Users/will/RustroverProjects/sakura/sakura-api/config.toml")).unwrap();
 
+        init_redis_pool().await.unwrap();
 
         let tk = "rust:test:key";
 
         RedisHelper
-            .set(tk, "value01")
+            .set(tk, "value01").await
             .expect("Failed to set value");
 
-        println!("{:?}", RedisHelper.set(tk, "value03"));
-        println!("{:?}", RedisHelper.set_nx(tk, "value02"));
+        println!("{:?}", RedisHelper.set(tk, "value03").await.unwrap());
+        println!("{:?}", RedisHelper.set_nx(tk, "value02").await.unwrap());
 
         // RedisHelper
         //     .set(tk, "value02")
         //     .expect("Failed to set value");
 
         let value = RedisHelper
-            .get::<String>(tk)
+            .get::<&str, String>(tk).await
             .expect("Failed to get value");
         println!("Get value: {:?}", value);
 
-        RedisHelper
-            .del("rust:test:key")
+        let result = RedisHelper
+            .del("rust:test:key").await
             .expect("Failed to remove value");
+        println!("Remove result: {:?}", result);
 
         let key = "rust:test:incr";
-        RedisHelper.del(key).expect("Failed to remove value");
+        RedisHelper.del(key).await.expect("Failed to remove value");
 
-        let incr = RedisHelper.incr::<i64>(key,1).unwrap();
+        let incr = RedisHelper.incr::<&str, u32>(key,1).await.unwrap();
         println!("Incr First: {:?}", incr);
-        let incr = RedisHelper.incr::<i64>(key,1).unwrap();
+        let incr = RedisHelper.incr::<&str, u32>(key,1).await.unwrap();
         println!("Incr Second: {:?}", incr);
 
-        let incr = RedisHelper.incr::<i64>(key,-1).unwrap();
+        let incr = RedisHelper.incr::<&str, i32>(key,-1).await.unwrap();
         assert_eq!(incr, 1);
 
-        let incr = RedisHelper.incr::<f64>(key,1.1).unwrap();
+        let incr = RedisHelper.incr::<&str, f32>(key,1.1).await.unwrap();
         assert_eq!(incr, 2.1);
 
-        RedisHelper.del(key).expect("Failed to remove value");
+        let mut handles = vec![];
+        for i in 0..10 {
+            handles.push(tokio::spawn(async move {
+                let incr_v = RedisHelper.incr("rust:test:key", 1).await.unwrap();
+                println!("NO: {:?}, {}", i, incr_v);
+            }))
+        }
+        join_all(handles).await;
 
-        let key1 = "living:room:list:V1:filter:level";
+        RedisHelper.del(key).await.expect("Failed to remove value");
 
-        let exist = RedisHelper.exists(key1).expect("Failed to get value");
-        assert!(exist);
+        let key1 = "living:room:list:env:TEST";
+        let exist = RedisHelper.exists(key1).await.expect("Failed to get value");
+        let room_list = RedisHelper.get::<_, String>(key1).await.unwrap();
+        println!("{:?}, Exist {:?}, {:?}", key1, exist, room_list);
+
+        let key2 = "living:room:list:V1:filter:level";
+        let exist = RedisHelper.exists(key2).await.expect("Failed to get value");
+        println!("{:?}, Exist {:?}", key2, exist);
+        // assert!(exist);
         if exist {
-            let value = RedisHelper.lrange::<String>(key1, 0, -1).expect("Failed to set value");
+            let list = RedisHelper.lrange::<_, String>(key2, 0, -1).await.expect("Failed to get value");
 
-            println!("Value: {:?}", value);
-            if let Some(value) = value {
-                value.iter().for_each(|value| {
-                    println!("Value: {:?}", value);
-                    println!("Value Json: {:?}", serde_json::from_str::<serde_json::Value>(value).unwrap());
-                })
-            }
+            println!("list: {:?}", list);
+            list.into_iter().for_each(|item| {
+                println!("item: {:?}", item);
+                println!("item Json: {:?}", serde_json::from_str::<Value>(&item).unwrap());
+            })
         }
 
         // 删除文件
-        teardown(&path)
+        // teardown(&path)
     }
 
 

@@ -9,7 +9,7 @@ custom_config = "/Users/will/RustroverProjects/sakura/yice-api/config.toml"
 [log]
 [log.logging]
 log_level = "INFO"
-log_path = "./temp/logs"
+log_path = "./tmp/logs"
 file_rotation = "daily"
 log_format = "json"  # 可选：json 或 plain
 

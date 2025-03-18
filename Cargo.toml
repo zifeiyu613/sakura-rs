@@ -22,11 +22,20 @@ actix-http = "3"
 futures = "0.3"
 futures-util = "0.3"
 
+axum = "0"
+axum-extra = "0"
+
 sqlx = { version = "0.8", features = ["runtime-tokio", "mysql", "chrono"] }
 tokio = { version = "1", features = ["full"] }
 
-redis = {version = "0", features = ["r2d2"]}
-r2d2 = "0.8.10"
+redis = {version = "0.29"}
+r2d2 = "0.8"
+bb8 = "0.9"
+bb8-redis = "0.21"
+bb8-lapin = "0.6.0"
+lapin = "2.5"
+deadpool-lapin = "0.12"
+async-trait = "0.1"
 
 toml = "0.8"
 clap = "4"
@@ -70,9 +79,6 @@ tracing-appender = "0"
 log = "0"
 env_logger = "0"
 
-lapin = "2.5.0"
-deadpool-lapin = "0.12"
-async-trait = "0.1"
 
 uuid = { version = "1.0", features = ["v4"] }
 url = "2.5"
