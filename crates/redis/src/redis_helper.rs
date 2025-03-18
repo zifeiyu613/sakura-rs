@@ -78,6 +78,15 @@ impl RedisHelper {
         Ok(result)
     }
 
+    pub async fn del_keys<K>(&self, key: Vec<K>) -> Result<bool, RedisPoolError>
+    where
+        K: ToRedisArgs + Send + Sync,
+    {
+        let mut conn = self.get_connection().await?;
+        let result = conn.del(key).await?;
+        Ok(result)
+    }
+
     /// 设置键值对，带过期时间（秒）
     pub async fn set_with_expiry<K, V>(&self, key: K, value: V, ttl: u64) -> Result<bool, RedisPoolError>
     where
@@ -132,6 +141,16 @@ impl RedisHelper {
     }
 
 
+    pub async fn llen<K>(&self, key: K) -> Result<usize, RedisPoolError>
+    where
+        K: ToRedisArgs + Send + Sync,
+    {
+        let mut conn = self.get_connection().await?;
+        let result = conn.llen(key).await?;
+        Ok(result)
+    }
+
+
 }
 
 #[cfg(test)]
@@ -178,10 +197,19 @@ mod tests {
             .expect("Failed to get value");
         println!("Get value: {:?}", value);
 
+        // let result = RedisHelper
+        //     .del("rust:test:key").await
+        //     .expect("Failed to remove value");
+        // println!("Remove result: {:?}", result);
+
+        RedisHelper.set("rust:test:key", "value04").await.unwrap();
+        RedisHelper.set("rust:test:key1", "value04").await.unwrap();
+        // RedisHelper.set("rust:test:key2", "value04").await.unwrap();
+
         let result = RedisHelper
-            .del("rust:test:key").await
+            .del_keys(vec!["rust:test:key", "rust:test:key1", "rust:test:key2"]).await
             .expect("Failed to remove value");
-        println!("Remove result: {:?}", result);
+        println!("Remove keys result: {:?}", result);
 
         let key = "rust:test:incr";
         RedisHelper.del(key).await.expect("Failed to remove value");
