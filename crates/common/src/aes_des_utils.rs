@@ -129,6 +129,7 @@ where
 ///
 /// # 返回
 /// - 解密后的明文数据
+///
 pub fn aes_decrypt(key: &[u8], data: &str) -> String {
     // 解码 Base64 密文数据
     let encrypted_data = decode_base64(data).expect("Invalid Base64 encoded data");
@@ -450,6 +451,22 @@ mod tests {
         assert_eq!(plaintext, plaintext1);
 
         // println!("encode_base64: {:?}", encode_base64(data.as_bytes().to_vec()).unwrap())
+
+        // String sToken = "QDG6eK";
+        // String sCorpID = "wx5823bf96d3bd56c7";
+        // String sEncodingAESKey = "jWmYm7qr5nMoAUwZRjGtBxmz3KA1tkAj3ykkR6q2B2C";
+        // 解析出url上的参数值如下：
+        // String sVerifyMsgSig = HttpUtils.ParseUrl("msg_signature");
+        //String sVerifyMsgSig = "5c45ff5e21c57e6ad56bac8758b79b1d9ac89fd3";
+        // String sVerifyTimeStamp = HttpUtils.ParseUrl("timestamp");
+        //String sVerifyTimeStamp = "1409659589";
+        // String sVerifyNonce = HttpUtils.ParseUrl("nonce");
+        //String sVerifyNonce = "263014780";
+        // String sVerifyEchoStr = HttpUtils.ParseUrl("echostr");
+        // String sVerifyEchoStr = "P9nAzCzyDtyTWESHep1vC5X9xho/qYX3Zpb4yKa9SKld1DsH3Iyt3tP3zNdtp+4RPcs8TgAE7OaBO+FZXvnaqQ==";
+
+        // verifyurl echostr: 1616140317555161061
+
 
     }
 }
