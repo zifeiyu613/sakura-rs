@@ -1,0 +1,17 @@
+[package]
+name = "tools"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+reqwest = { workspace = true, features = ["json"] }
+tokio = { workspace = true, features = ["full"] }
+
+url = {workspace = true}
+uuid = { workspace = true, features = ["v4"] }
+thiserror = { workspace = true }
+
+scraper = "0.23.1"
+indicatif = "0.17"
+sanitize-filename = "0.6.0"

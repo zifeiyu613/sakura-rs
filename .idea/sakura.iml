@@ -30,6 +30,7 @@
       <sourceFolder url="file://$MODULE_DIR$/sakura-api/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/sakura-cli/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/yice-api/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/tools/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
