@@ -78,7 +78,18 @@ pub fn aes128_decrypt(key: &[u8], data: &str) -> Vec<u8> {
 ///
 /// # 返回
 /// - Base64 编码的加密密文
-pub fn aes_encrypt(key: &[u8], data: &[u8]) -> String {
+pub fn aes_encrypt(key: &[u8], data: &str) -> String {
+    let decode_data = decode_base64(data).unwrap();
+    // 检测密钥长度，选择加密标准
+    match key.len() {
+        16 => encrypt_with_cipher::<Aes128>(key, &decode_data),
+        24 => encrypt_with_cipher::<Aes192>(key, &decode_data),
+        32 => encrypt_with_cipher::<Aes256>(key, &decode_data),
+        _ => panic!("Unsupported key length. Use 16 bytes for AES-128 or 32 bytes for AES-256."),
+    }
+}
+
+pub fn aes_encrypt_bytes(key: &[u8], data: &[u8]) -> String {
     // 检测密钥长度，选择加密标准
     match key.len() {
         16 => encrypt_with_cipher::<Aes128>(key, data),
@@ -139,6 +150,19 @@ pub fn aes_decrypt(key: &[u8], data: &str) -> String {
         16 => decrypt_with_cipher::<Aes128>(key, &encrypted_data),
         24 => decrypt_with_cipher::<Aes192>(key, &encrypted_data),
         32 => decrypt_with_cipher::<Aes256>(key, &encrypted_data),
+        _ => panic!("Unsupported key length. Use 16 bytes for AES-128，24 bytes for AES-192 or 32 bytes for AES-256."),
+    }
+}
+
+pub fn aes_decrypt_bytes(key: &[u8], data: &[u8]) -> String {
+    // 解码 Base64 密文数据
+    // let encrypted_data = decode_base64(data).expect("Invalid Base64 encoded data");
+
+    // 检测密钥长度，选择加密标准
+    match key.len() {
+        16 => decrypt_with_cipher::<Aes128>(key, data),
+        24 => decrypt_with_cipher::<Aes192>(key, data),
+        32 => decrypt_with_cipher::<Aes256>(key, data),
         _ => panic!("Unsupported key length. Use 16 bytes for AES-128，24 bytes for AES-192 or 32 bytes for AES-256."),
     }
 }
@@ -391,7 +415,7 @@ mod tests {
         let data = b"Hello, AES Encryption! ssss aaa".to_vec(); // 明文数据
 
         // 加密数据
-        let encrypted_data = aes_encrypt(key16, &data);
+        let encrypted_data = aes_encrypt_bytes(key16, &data);
         println!("AES128 Encrypted: {:?}", encrypted_data);
 
         // 解密数据
@@ -401,7 +425,7 @@ mod tests {
         println!("AES128 Done ============================");
 
         // 加密数据
-        let encrypted_data = aes_encrypt(key24, &data);
+        let encrypted_data = aes_encrypt_bytes(key24, &data);
         println!("AES192 Encrypted: {:?}", encrypted_data);
 
         // 解密数据
@@ -411,7 +435,7 @@ mod tests {
         println!("AES192 Done ============================");
 
         // 加密数据
-        let encrypted_data = aes_encrypt(key32, &data);
+        let encrypted_data = aes_encrypt_bytes(key32, &data);
         println!("AES256 Encrypted: {:?}", encrypted_data);
 
         // 解密数据

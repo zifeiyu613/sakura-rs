@@ -22,6 +22,8 @@ actix-http = "3"
 futures = "0.3"
 futures-util = "0.3"
 
+rayon = "1"
+
 axum = "0"
 axum-extra = "0"
 
@@ -64,6 +66,8 @@ cbc = "0.2.0-pre.2"
 block-padding = { version = "0.4.0-rc.2" }
 sha1 = "0"
 hmac = "0"
+
+id3 = "1"
 
 rand = "0.9.0-beta.3"
 

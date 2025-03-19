@@ -1,6 +1,7 @@
 use sha1::{Digest, Sha1};
 
-fn get_sha1_by_sort(token: &str, timestamp: &str, nonce: &str, encrypt: &str) -> Option<String> {
+#[allow(unused)]
+pub fn get_sha1_by_sort(token: &str, timestamp: &str, nonce: &str, encrypt: &str) -> Option<String> {
     let mut array = vec![token, timestamp, nonce, encrypt];
     // 字符串排序
     array.sort();
@@ -11,7 +12,8 @@ fn get_sha1_by_sort(token: &str, timestamp: &str, nonce: &str, encrypt: &str) ->
 }
 
 
-fn get_sha1(text: &str) -> String {
+#[allow(unused)]
+pub fn get_sha1(text: &str) -> String {
     // 计算SHA1
     let mut hasher = Sha1::new();
     hasher.update(text.as_bytes());
