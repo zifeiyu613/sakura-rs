@@ -160,35 +160,43 @@ impl ImageDownloader {
         let img_selector = Selector::parse("img").unwrap();
         let mut image_tasks = vec![];
 
-        for img in document.select(&img_selector) {
-            let sources = img.value()
-                .attr("src")
-                .into_iter()
-                .chain(img.value().attr("data-src"))
-                .map(String::from)
-                .collect::<Vec<_>>();
+        // 立即收集所有需要的URL
+        let image_urls: Vec<String> = document
+            .select(&img_selector)
+            .flat_map(|img| {
+                let mut urls = Vec::new();
+                // 提取 src
+                if let Some(src) = img.value().attr("src") {
+                    urls.push(src.to_string());
+                }
+                // 提取 data-src
+                if let Some(data_src) = img.value().attr("data-src") {
+                    urls.push(data_src.to_string());
+                }
+                urls
+            })
+            .collect();
 
-            for src in sources {
-                if let Ok(absolute_url) = self.resolve_url(&src) {
-                    if !self.is_already_downloaded(&absolute_url).await && self.is_valid_image(&absolute_url).await {
-                        self.mark_as_downloaded(&absolute_url).await;
+        for src in image_urls {
+            if let Ok(absolute_url) = self.resolve_url(&src) {
+                if !self.is_already_downloaded(&absolute_url).await && self.is_valid_image(&absolute_url).await {
+                    self.mark_as_downloaded(&absolute_url).await;
 
-                        let permit = Arc::clone(&self.download_semaphore);
-                        let client = self.client.clone();
-                        let output_dir = self.output_dir.clone();
-                        let progress_bar = Arc::clone(&self.progress_bar);
+                    let permit = Arc::clone(&self.download_semaphore);
+                    let client = self.client.clone();
+                    let output_dir = self.output_dir.clone();
+                    let progress_bar = Arc::clone(&self.progress_bar);
 
-                        image_tasks.push(tokio::spawn(async move {
-                            let _permit = permit.acquire().await;
-                            match download_image(&client, &absolute_url, &output_dir).await {
-                                Ok(_) => {
-                                    let mut pb = progress_bar.lock().await;
-                                    pb.inc(1);
-                                },
-                                Err(e) => eprintln!("Failed to download {}: {}", absolute_url, e),
-                            }
-                        }));
-                    }
+                    image_tasks.push(tokio::spawn(async move {
+                        let _permit = permit.acquire().await;
+                        match download_image(&client, &absolute_url, &output_dir).await {
+                            Ok(_) => {
+                                let mut pb = progress_bar.lock().await;
+                                pb.inc(1);
+                            },
+                            Err(e) => eprintln!("Failed to download {}: {}", absolute_url, e),
+                        }
+                    }));
                 }
             }
         }
@@ -257,49 +265,6 @@ impl ImageDownloader {
     }
 }
 
-async fn download_image(
-    client: &Client,
-    url: &str,
-    output_dir: &str,
-) -> Result<PathBuf, DownloaderError> {
-    const MAX_RETRIES: usize = 3;
-    let mut retries = 0;
-
-    loop {
-        match client.get(url).send().await {
-            Ok(response) => {
-                // 生成唯一文件名
-                let file_name = Url::parse(url)?
-                    .path_segments()
-                    .and_then(|segments| segments.last())
-                    .map(|name| name.to_string())
-                    .unwrap_or_else(|| "image.jpg".to_string());
-
-                let unique_name = format!(
-                    "{}_{}{}",
-                    Uuid::new_v4().simple(),
-                    sanitize_filename::sanitize(&file_name),
-                    get_extension(&file_name)
-                );
-
-                let path = PathBuf::from(output_dir).join(&unique_name);
-
-                let mut file = File::create(&path).await?;
-                let bytes = response.bytes().await?;
-                file.write_all(&bytes).await?;
-
-                return Ok(path);
-            },
-            Err(e) if retries < MAX_RETRIES => {
-                retries += 1;
-                eprintln!("下载失败 {}, 重试 {}/{}...", url, retries, MAX_RETRIES);
-                sleep(Duration::from_secs(1)).await;
-            },
-            Err(e) => return Err(DownloaderError::Request(e)),
-        }
-    }
-}
-
 // 下载单个图片
 // async fn download_image(
 //     client: &Client,
@@ -331,8 +296,51 @@ async fn download_image(
 //     Ok(path)
 // }
 
+async fn download_image(
+    client: &Client,
+    url: &str,
+    output_dir: &str,
+) -> Result<PathBuf, crate::image_downloader::DownloaderError> {
+    const MAX_RETRIES: usize = 3;
+    let mut retries = 0;
+
+    loop {
+        match client.get(url).send().await {
+            Ok(response) => {
+                // 生成唯一文件名
+                let file_name = Url::parse(url)?
+                    .path_segments()
+                    .and_then(|segments| segments.last())
+                    .map(|name| name.to_string())
+                    .unwrap_or_else(|| "image.jpg".to_string());
+
+                let unique_name = format!(
+                    "{}_{}{}",
+                    Uuid::new_v4().simple(),
+                    sanitize_filename::sanitize(&file_name),
+                    crate::image_downloader::get_extension(&file_name)
+                );
+
+                let path = PathBuf::from(output_dir).join(&unique_name);
+
+                let mut file = File::create(&path).await?;
+                let bytes = response.bytes().await?;
+                file.write_all(&bytes).await?;
+
+                return Ok(path);
+            },
+            Err(e) if retries < MAX_RETRIES => {
+                retries += 1;
+                eprintln!("下载失败 {}, 重试 {}/{}...", url, retries, MAX_RETRIES);
+                sleep(Duration::from_secs(1)).await;
+            },
+            Err(e) => return Err(crate::image_downloader::DownloaderError::Request(e)),
+        }
+    }
+}
+
 // 获取文件扩展名
-fn get_extension(filename: &str) -> String {
+pub(crate) fn get_extension(filename: &str) -> String {
     Path::new(filename)
         .extension()
         .and_then(|ext| ext.to_str())
@@ -356,9 +364,38 @@ mod tests {
         let max_concurrent_pages = 3;
 
         let downloader = ImageDownloader::new(base_url, output_dir, max_concurrent, 3).unwrap();
-        downloader.download_images(base_url.to_string(), max_concurrent_pages).await.unwrap();
+        // downloader.download_images(base_url.to_string(), max_concurrent_pages).await.unwrap();
 
         println!("Download completed!");
+
+
+        // 在编译时检查类型
+        // assert_is_send::<Arc<Mutex<i32>>>();
+        // assert_is_send_sync::<Arc<Mutex<i32>>>();
+        //
+        // let future = async {
+        //     println!("Hello");
+        // };
+        // assert_future_is_send::<decltype!(future)>();
+
+        assert_send_result(downloader.download_images_inner(base_url, max_concurrent, max_concurrent));
+    }
+
+
+    // 编译时检查类型是否是 Send
+    fn assert_is_send<T: Send>() {}
+
+    // 编译时检查类型是否是 Send + Sync
+    fn assert_is_send_sync<T: Send + Sync>() {}
+
+    // 编译时检查 Future 是否是 Send
+    fn assert_future_is_send<F: Future + Send>() {}
+
+    // 编译时检查方法是否返回 Send Future
+    fn assert_send_result<F>(f: F)
+    where
+        F: Future<Output = Result<(), DownloaderError>> + Send,
+    {
     }
 
 }

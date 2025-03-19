@@ -2,8 +2,6 @@ mod ncm_format;
 mod ncm_metadata;
 mod ncm_music;
 
-
-
 use rayon::prelude::*;
 use std::fs;
 use std::path::Path;
