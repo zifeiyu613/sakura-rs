@@ -1,0 +1,28 @@
+[package]
+name = "redis"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+redis = { workspace = true }
+bb8 = {workspace = true}
+bb8-redis = {workspace = true}
+tokio = {workspace = true}
+
+async-trait =  {workspace = true}
+
+uuid = { workspace = true, features = ["v4"] }
+serde = {workspace = true, features = ["derive"]}
+serde_json = {workspace = true}
+
+tracing = {workspace = true}
+once_cell = { workspace = true }
+
+thiserror = {workspace = true}
+
+config = {path = "../config"}
+
+
+
+[dev-dependencies]
+futures-util = {workspace = true}

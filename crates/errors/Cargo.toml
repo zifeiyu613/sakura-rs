@@ -1,0 +1,10 @@
+[package]
+name = "errors"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+
+config = {workspace = true}
+
+thiserror = {workspace = true}

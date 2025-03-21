@@ -1,0 +1,100 @@
+[workspace]
+resolver = "2"
+members = [
+    "a-flash",
+    "axum-code",
+    "actix-code",
+    "sakura-api",
+    "yice-api",
+    "sakura-cli",
+    "crates/*",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+
+#[lints]
+#workspace = { reference = "https://doc.rust-lang.org/rust-by-example/", level = "warn" }
+
+[workspace.dependencies]
+actix-web = "4"
+actix-http = "3"
+futures = "0.3"
+futures-util = "0.3"
+
+rayon = "1"
+
+axum = "0"
+axum-extra = "0"
+
+sqlx = { version = "0.8", features = ["runtime-tokio", "mysql", "chrono"] }
+tokio = { version = "1", features = ["full"] }
+
+redis = {version = "0.29"}
+r2d2 = "0.8"
+bb8 = "0.9"
+bb8-redis = "0.21"
+bb8-lapin = "0.6.0"
+lapin = "2.5"
+deadpool-lapin = "0.12"
+async-trait = "0.1"
+
+toml = "0.8"
+clap = "4"
+strum = "0.27"
+strum_macros = "0.27"
+
+lazy_static = {version = "1.5"}
+once_cell = { version = "1" }
+inventory = {version = "0.3"}
+
+chrono = { version = "0.4", features = ["serde"] }
+
+serde = "1"
+serde_json = "1"
+serde_urlencoded = "0"
+
+dotenvy = "0.15"
+listenfd = "1"
+
+cipher = { version = "0.5.0-pre.7" }
+aes = { version = "0.9.0-pre.2" }
+des = { version = "0.9.0-pre.2" }
+
+base64 = "0.22.1"
+cbc = "0.2.0-pre.2"
+block-padding = { version = "0.4.0-rc.2" }
+sha1 = "0"
+hmac = "0"
+
+id3 = "1"
+
+rand = "0.9.0-beta.3"
+
+thiserror = "2.0"
+anyhow = "1"
+
+config = "0"
+
+tracing = "0"
+tracing-subscriber = "0"
+tracing-appender = "0"
+
+log = "0"
+env_logger = "0"
+
+
+uuid = { version = "1.0", features = ["v4"] }
+url = "2.5"
+reqwest = "0.12"
+
+# Rust 中的 宏（macro）开发生态系统的核心组件，主要用于 自定义派生宏（procedural macro） 和 代码生成
+syn = { version = "2.0", features = ["full"] }  # 解析 Rust 源代码为抽象语法树（AST）用于读取和解析宏的输入代码
+quote = "1.0"                                   # 动态生成 Rust 代码, 用于生成宏的输出代码
+proc-macro2 = "1.0"                             # 提供 TokenStream，支持过程宏的开发, 底层基础设施，支持跨平台 Token 流操作
+darling = "0.20"                                # 简化属性解析, 用于解析自定义宏属性
+
+# 开发测试 临时文件
+tempfile = "3"

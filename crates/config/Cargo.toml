@@ -1,0 +1,15 @@
+[package]
+name = "config"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+
+config = {workspace = true}
+serde = {workspace = true}
+
+once_cell = {workspace = true}
+
+errors = {path = "../errors"}
+
+

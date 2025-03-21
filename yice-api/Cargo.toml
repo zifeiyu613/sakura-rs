@@ -1,0 +1,38 @@
+[package]
+name = "yice-api"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+actix-web = {workspace = true}
+tokio = {workspace = true, features = ["full"]}
+
+serde = {workspace = true, features = ["derive"]}
+serde_json = {workspace = true}
+
+sqlx = {workspace = true, features = ["runtime-tokio", "mysql", "chrono"]}
+chrono = {workspace = true}
+
+clap = {workspace = true}
+
+
+reqwest = {workspace = true, features = ["json"]}
+
+
+# Log
+tracing = {workspace = true}
+tracing-subscriber = {workspace = true, features = ["chrono", "json"] }
+
+inventory = {workspace = true}
+
+common = {path = "../crates/common"}
+config = {path = "../crates/config"}
+database = {path = "../crates/database"}
+mq = {path = "../crates/mq"}
+redis = {path = "../crates/redis"}
+middleware = {path = "../crates/middleware"}
+sakura-macros = {path = "../crates/macros"}
+logs = {path = "../crates/logs"}
+web-core = {path = "../crates/web-core"}
+
+[dev-dependencies]

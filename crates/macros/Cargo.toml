@@ -1,0 +1,13 @@
+[package]
+name = "sakura-macros"
+version = {workspace = true}
+edition = {workspace = true}
+
+[lib]
+proc-macro = true # 表示该 crate 是一个专门的过程宏库，可以定义自定义派生宏、属性宏和函数宏。
+
+[dependencies]
+syn = {workspace = true, features = ["full"]}
+quote = {workspace = true}
+proc-macro2 = {workspace = true}
+darling = {workspace = true}
