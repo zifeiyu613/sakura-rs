@@ -26,7 +26,7 @@ A Rust web service for managing multiple microservices like database, message qu
 
 
 ## 项目结构
-
+```
 sakura/                      # 🌲 根目录 (workspace)
 │── Cargo.toml               # 🏠 Cargo workspace
 │── sakura-web/              # 🌐 Web 服务
@@ -52,3 +52,5 @@ sakura/                      # 🌲 根目录 (workspace)
 │   ├── web-core/            # Web 框架核心 (提供 WebService trait)
 │── .gitignore
 │── README.md
+
+```
