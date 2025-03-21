@@ -3,9 +3,7 @@ use actix_web::{
     web, App, HttpServer, HttpResponse, Responder, Error,
 };
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform};
-use actix_web_httpauth::extractors::bearer::BearerAuth;
 use futures_util::future::{ok, Ready, LocalBoxFuture};
-use jsonwebtoken::{decode, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
 use std::{
     future::{ready, Future},

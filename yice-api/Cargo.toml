@@ -23,6 +23,8 @@ reqwest = {workspace = true, features = ["json"]}
 tracing = {workspace = true}
 tracing-subscriber = {workspace = true, features = ["chrono", "json"] }
 
+inventory = {workspace = true}
+
 common = {path = "../crates/common"}
 config = {path = "../crates/config"}
 database = {path = "../crates/database"}
@@ -34,4 +36,3 @@ logs = {path = "../crates/logs"}
 web-core = {path = "../crates/web-core"}
 
 [dev-dependencies]
-inventory = {workspace = true}
