@@ -1,155 +1,176 @@
-use std::time::Duration;
-use bb8::{Pool, RunError};
-use bb8_redis::RedisConnectionManager;
-use once_cell::sync::{Lazy, OnceCell};
-use tokio::runtime::Runtime;
-use tracing::{error, info};
-use config::app_config::get_config;
 
-pub mod redis_helper;
+mod redis_helper;
+mod redis_locker;
+mod redis_manager;
 
 
-/// Redis 连接池错误类型
-#[derive(Debug, thiserror::Error)]
-pub enum RedisPoolError {
-    #[error("Failed to initialize Redis pool: {0}")]
-    InitializationError(String),
+pub use redis_helper::RedisHelper;
+pub use redis_locker::{RedisLocker, RedisLock, RedisLockGuard};
 
-    // #[error("Redis connection error: {0}")]
-    // ConnectionError(#[from] RedisError),
 
-    #[error("Pool timed out")]
-    PoolTimeout,
 
-    #[error("Pool error: {0}")]
-    PoolError(String),
+#[cfg(test)]
+mod tests {
+    use crate::redis_manager::{init_redis_pool, RedisPoolError};
+    use crate::redis_helper::RedisHelper;
+    use config::app_config::load_config;
+    use futures_util::future::join_all;
+    use serde_json::Value;
+    use std::io::Write;
+    use std::time::Duration;
 
-    #[error("Runtime error: {0}")]
-    RuntimeError(String),
+    #[tokio::test]
+    async fn redis_set_get() {
+        // 创建临时文件
+        // let path =  setup();
 
-    #[error("Redis operator error: {0}")]
-    OperatorError(#[from] bb8_redis::redis::RedisError),
+        // 前置条件：创建临时文件
+        // let mut temp_file = NamedTempFile::new_in("redis_config.toml").expect("Failed to create temp file");
+        // let content = r#"
+        //     uri="redis://:HuaJian2019testRedis@srv-redis-uat-io.kaiqi.xin:7001/0"
+        //     pool_max_size=10
+        // "#;
+        // writeln!(temp_file, "{}", content).expect("Failed to write to temp file");
 
-    #[error("User code error: {0}")]
-    UserError(String),
+        load_config(Some("/Users/will/RustroverProjects/sakura/sakura-api/config.toml")).unwrap();
 
-}
+        init_redis_pool().await.unwrap();
 
-// 实现从 RunError 到 RedisPoolError 的转换
-impl From<RunError<redis::RedisError>> for RedisPoolError {
+        let tk = "rust:test:key";
 
-    fn from(err: RunError<redis::RedisError>) -> Self {
-        match err {
-            RunError::User(user_err) => RedisPoolError::UserError(user_err.to_string()),
-            RunError::TimedOut => RedisPoolError::PoolTimeout
+        RedisHelper
+            .set(tk, "value01").await
+            .expect("Failed to set value");
+
+        println!("{:?}", RedisHelper.set(tk, "value03").await.unwrap());
+        println!("{:?}", RedisHelper.set_nx(tk, "value02").await.unwrap());
+
+        // RedisHelper
+        //     .set(tk, "value02")
+        //     .expect("Failed to set value");
+
+        let value = RedisHelper
+            .get::<&str, String>(tk).await
+            .expect("Failed to get value");
+        println!("Get value: {:?}", value);
+
+        // let result = RedisHelper
+        //     .del("rust:test:key").await
+        //     .expect("Failed to remove value");
+        // println!("Remove result: {:?}", result);
+
+        RedisHelper.set("rust:test:key", "value04").await.unwrap();
+        RedisHelper.set("rust:test:key1", "value04").await.unwrap();
+        // RedisHelper.set("rust:test:key2", "value04").await.unwrap();
+
+        let result = RedisHelper
+            .del_keys(vec!["rust:test:key", "rust:test:key1", "rust:test:key2"]).await
+            .expect("Failed to remove value");
+        println!("Remove keys result: {:?}", result);
+
+        let key = "rust:test:incr";
+        RedisHelper.del(key).await.expect("Failed to remove value");
+
+        let incr = RedisHelper.incr::<&str, u32>(key,1).await.unwrap();
+        println!("Incr First: {:?}", incr);
+        let incr = RedisHelper.incr::<&str, u32>(key,1).await.unwrap();
+        println!("Incr Second: {:?}", incr);
+
+        let incr = RedisHelper.incr::<&str, i32>(key,-1).await.unwrap();
+        assert_eq!(incr, 1);
+
+        let incr = RedisHelper.incr::<&str, f32>(key,1.1).await.unwrap();
+        assert_eq!(incr, 2.1);
+
+        let mut handles = vec![];
+        for i in 0..10 {
+            handles.push(tokio::spawn(async move {
+                let incr_v = RedisHelper.incr("rust:test:key", 1).await.unwrap();
+                println!("NO: {:?}, {}", i, incr_v);
+            }))
         }
-    }
-}
+        join_all(handles).await;
 
-/// Redis 连接池配置
-#[derive(Debug)]
-pub struct RedisPoolConfig {
-    pub uri: String,
-    pub max_size: u32,
-    pub min_idle: u32,
-    pub connection_timeout: Duration,
-    pub idle_timeout: Duration,
-}
+        RedisHelper.del(key).await.expect("Failed to remove value");
 
+        let key1 = "living:room:list:env:TEST";
+        let exist = RedisHelper.exists(key1).await.expect("Failed to get value");
+        let room_list = RedisHelper.get::<_, String>(key1).await.unwrap();
+        println!("{:?}, Exist {:?}, {:?}", key1, exist, room_list);
 
-/// Redis 连接池管理器
-#[derive(Clone)]
-pub struct RedisPoolManager {
-    pool: Pool<RedisConnectionManager>,
-}
+        let key2 = "living:room:list:V1:filter:level";
+        let exist = RedisHelper.exists(key2).await.expect("Failed to get value");
+        println!("{:?}, Exist {:?}", key2, exist);
+        // assert!(exist);
+        if exist {
+            let list = RedisHelper.lrange::<_, String>(key2, 0, -1).await.expect("Failed to get value");
 
-impl RedisPoolManager {
-    /// 创建新的连接池管理器实例
-    async fn new() -> Result<Self, RedisPoolError> {
-        let config = Self::get_pool_config()?;
+            println!("list: {:?}", list);
+            list.into_iter().for_each(|item| {
+                println!("item: {:?}", item);
+                println!("item Json: {:?}", serde_json::from_str::<Value>(&item).unwrap());
+            })
+        }
 
-        // 打印掩码后的URI
-        let masked_uri = if let Some(_) = config.uri.strip_prefix("redis://:") {
-            "redis://:*****".to_string()
-        } else {
-            config.uri.clone()
-        };
-        info!("Initializing Redis connection pool with URI: {}", masked_uri);
-
-        let manager = RedisConnectionManager::new(&*config.uri)
-            .map_err(|e| RedisPoolError::InitializationError(e.to_string()))?;
-
-        let pool = Pool::builder()
-            .max_size(config.max_size)
-            .min_idle(Some(config.min_idle))
-            .connection_timeout(config.connection_timeout)
-            .idle_timeout(Some(config.idle_timeout))
-            .build(manager)
-            .await
-            .map_err(|e| RedisPoolError::InitializationError(e.to_string()))?;
-
-        Ok(Self { pool })
+        // 删除文件
+        // teardown(&path)
     }
 
-    /// 获取连接池配置
-    fn get_pool_config() -> Result<RedisPoolConfig, RedisPoolError> {
-        let config = get_config().map_err(|e| RedisPoolError::InitializationError(e.to_string()))?;
 
-        Ok(RedisPoolConfig {
-            uri: config.redis.uri,
-            max_size: config.redis.pool_max_size as u32,
-            min_idle: 5,
-            connection_timeout: Duration::from_secs(10),
-            idle_timeout: Duration::from_secs(300),
-        })
+    fn setup() -> String {
+        // 创建临时文件，返回文件路径
+        let file_path = "redis_config.toml".to_string();
+        let mut file = std::fs::File::create(&file_path).expect("Failed to create test file");
+        let content = r#"
+         [redis]
+         uri="redis://:HuaJian2019testRedis@srv-redis-uat-io.kaiqi.xin:7001/0"
+         pool_max_size=10
+        "#;
+        writeln!(file, "{}", content).expect("Failed to write to test file");
+        file_path
     }
 
-    /// 获取连接池引用
-    pub fn get_pool(&self) -> &Pool<RedisConnectionManager> {
-        &self.pool
+    fn teardown(file_path: &str) {
+        // 删除文件
+        std::fs::remove_file(file_path).expect("Failed to delete test file");
     }
 
-}
 
-// 全局静态连接池
-pub static REDIS_POOL: OnceCell<RedisPoolManager> = OnceCell::new();
+    async fn example_with_redis_lock() -> Result<(), RedisPoolError> {
+        let redis_helper = RedisHelper;
+        let locker = redis_helper.locker();
 
-// 初始化函数
-pub async fn init_redis_pool() -> Result<(), RedisPoolError> {
-    if REDIS_POOL.get().is_some() {
-        return Ok(());
+        // 方式1: 直接使用锁
+        let lock = locker.try_lock(
+            "my_lock_key",
+            Duration::from_secs(30),
+            3,
+            Duration::from_millis(200)
+        ).await?;
+
+        // 执行需要锁保护的操作
+        // ...业务逻辑...
+
+        // 完成后释放锁
+        lock.unlock().await?;
+
+        // 方式2: 使用RAII风格的锁守卫 (推荐)
+        {
+            let _guard = locker.lock_with_guard(
+                "another_lock_key",
+                Duration::from_secs(10),
+                5,
+                Duration::from_millis(100)
+            ).await?;
+
+            // 执行需要锁保护的操作
+            // ...业务逻辑...
+
+            // 当_guard离开作用域时，锁会自动释放
+        }
+
+        Ok(())
     }
 
-    let manager = RedisPoolManager::new().await?;
-    REDIS_POOL
-        .set(manager)
-        .map_err(|_| RedisPoolError::InitializationError("Pool already initialized".into()))?;
-    Ok(())
-}
 
-// 获取连接池
-pub fn get_redis_pool_manager() -> Result<&'static RedisPoolManager, RedisPoolError> {
-    REDIS_POOL
-        .get()
-        .ok_or_else(|| RedisPoolError::InitializationError("Redis pool not initialized".into()))
-}
-
-
-// 使用示例
-pub async fn example_usage() -> Result<(), RedisPoolError> {
-    // 直接获取连接池（第一次调用时会自动初始化）
-    let pool = get_redis_pool_manager()?.get_pool();
-
-    // 获取连接（现在使用正确的错误转换）
-    let mut conn = pool.get().await?;  // RunError 会自动转换为 RedisPoolError
-
-    // 使用连接进行操作
-    // let _: () = redis::cmd("SET")
-    //     .arg("key")
-    //     .arg("value")
-    //     .query_async(&mut *conn)
-    //     .await
-    //     .map_err(RedisPoolError::ConnectionError)?;
-
-    Ok(())
 }
