@@ -3,6 +3,27 @@
 version = 4
 
 [[package]]
+name = "a-flash"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "common",
+ "futures",
+ "id3",
+ "indicatif",
+ "rayon",
+ "reqwest",
+ "sanitize-filename",
+ "scraper",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.11",
+ "tokio",
+ "url",
+ "uuid",
+]
+
+[[package]]
 name = "actix-code"
 version = "0.1.0"
 dependencies = [
@@ -645,6 +666,10 @@ name = "autocfg"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
+
+[[package]]
+name = "axum-code"
+version = "0.1.0"
 
 [[package]]
 name = "backtrace"
@@ -4525,27 +4550,6 @@ dependencies = [
  "serde_spanned",
  "toml_datetime",
  "winnow 0.6.24",
-]
-
-[[package]]
-name = "tools"
-version = "0.1.0"
-dependencies = [
- "base64 0.22.1",
- "common",
- "futures",
- "id3",
- "indicatif",
- "rayon",
- "reqwest",
- "sanitize-filename",
- "scraper",
- "serde",
- "serde_json",
- "thiserror 2.0.11",
- "tokio",
- "url",
- "uuid",
 ]
 
 [[package]]

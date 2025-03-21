@@ -1,24 +1,13 @@
 use futures::stream::{self, StreamExt};
-use indicatif::ProgressBar;
+use indicatif::{ProgressBar, ProgressStyle};
 use reqwest::Client;
-use std::path::Path;
+use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::fs::{self, File};
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::sync::Semaphore;
 use url::Url;
-
-#[derive(Debug, thiserror::Error)]
-pub enum DownloadError {
-    #[error("IO error: {0}")]
-    Io(#[from] std::io::Error),
-    #[error("Request error: {0}")]
-    Request(#[from] reqwest::Error),
-    #[error("URL parse error: {0}")]
-    UrlParse(#[from] url::ParseError),
-    #[error("Other error: {0}")]
-    Other(String),
-}
+use crate::downloader::error::DownloaderError;
 
 pub struct ImageDownloader {
     client: Client,
@@ -36,7 +25,7 @@ impl ImageDownloader {
     }
 
     // 从文件读取URLs并下载图片
-    pub async fn download_from_file(&self, file_path: &str) -> Result<(), DownloadError> {
+    pub async fn download_from_file(&self, file_path: &str) -> Result<(), DownloaderError> {
         // 确保输出目录存在
         fs::create_dir_all(&self.output_dir).await?;
 
@@ -57,7 +46,7 @@ impl ImageDownloader {
         // 创建进度条
         let progress_bar = Arc::new(ProgressBar::new(urls.len() as u64));
         progress_bar.set_style(
-            indicatif::ProgressStyle::default_bar()
+            ProgressStyle::default_bar()
                 .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos}/{len} {msg}")
                 .unwrap()
                 .progress_chars("##-"),
@@ -80,7 +69,7 @@ impl ImageDownloader {
                     pb.inc(1);
 
                     match &result {
-                        Ok(_) => pb.set_message(format!("Downloaded: {}", url)),
+                        Ok(path) => pb.set_message(format!("Downloaded: {} -> {}", url, path.display())),
                         Err(e) => pb.set_message(format!("Failed: {} - {}", url, e)),
                     }
 
@@ -117,35 +106,66 @@ impl ImageDownloader {
 async fn download_image(
     client: &Client,
     url: &str,
-    output_dir: &str,
-) -> Result<(), DownloadError> {
-    // 从URL中提取文件名
-    let file_name = Url::parse(url)
-        .ok()
-        .and_then(|url| url.path_segments()?.last().map(String::from))
-        .unwrap_or_else(|| {
-            format!(
-                "image_{}.jpg",
-                uuid::Uuid::new_v4().simple().to_string()
-            )
-        });
+    base_output_dir: &str,
+) -> Result<PathBuf, DownloaderError> {
+    let parsed_url = Url::parse(url).map_err(|e| DownloaderError::UrlParse(e))?;
 
-    // 构建输出路径
-    let output_path = Path::new(output_dir).join(&file_name);
+    // 提取域名后的路径
+    let path_segments: Vec<&str> = parsed_url
+        .path_segments()
+        .map(|segments| segments.collect())
+        .unwrap_or_default();
+
+    if path_segments.is_empty() {
+        return Err(DownloaderError::Other(format!("Invalid URL path: {}", url)));
+    }
+
+    // 最后一个段落是文件名
+    let file_name = path_segments.last().unwrap();
+
+    // 前面的段落是目录结构
+    let dirs = &path_segments[..path_segments.len() - 1];
+
+    // 创建完整的输出路径
+    let mut output_path = PathBuf::from(base_output_dir);
+
+    // 添加域名作为顶级目录
+    let host = parsed_url.host_str().unwrap_or("unknown_host");
+    output_path.push(host);
+
+    // 添加URL中的路径
+    for dir in dirs {
+        if !dir.is_empty() {
+            output_path.push(dir);
+        }
+    }
+
+    // 确保目录存在
+    fs::create_dir_all(&output_path).await?;
+
+    // 添加文件名
+    output_path.push(if file_name.is_empty() {
+        format!("image_{}.jpg", uuid::Uuid::new_v4().simple().to_string())
+    } else {
+        file_name.to_string()
+    });
 
     // 下载图片
     let response = client.get(url).send().await?;
+
+    // 检查状态码
+    if !response.status().is_success() {
+        return Err(DownloaderError::Other(format!(
+            "HTTP error status: {}",
+            response.status()
+        )));
+    }
+
     let bytes = response.bytes().await?;
 
     // 保存文件
     fs::write(&output_path, &bytes).await?;
 
-    Ok(())
+    Ok(output_path)
 }
 
-#[tokio::main]
-async fn main() -> Result<(), DownloadError> {
-    let downloader = ImageDownloader::new("downloaded_images", 5);
-    downloader.download_from_file("D:\\RustroverProjects\\sakura\\crates\\tools\\src\\image_urls.text").await?;
-    Ok(())
-}
