@@ -7,7 +7,7 @@ members = [
     "sakura-api",
     "yice-api",
     "sakura-cli",
-    "crates/*",
+    "crates/*", "ssl-automator",
 ]
 
 [workspace.package]
@@ -89,6 +89,15 @@ env_logger = "0"
 uuid = { version = "1.0", features = ["v4"] }
 url = "2.5"
 reqwest = "0.12"
+
+acme-lib = "0"       # ACME 协议
+acme-v2 = "0"
+openssl = "0"
+notify = "8"            # 文件监视
+notify-rust = "4"       # 系统通知
+tokio-cron-scheduler = "0" # 定时任务
+shellexpand = "3"       # 展开路径中的环境变量
+
 
 # Rust 中的 宏（macro）开发生态系统的核心组件，主要用于 自定义派生宏（procedural macro） 和 代码生成
 syn = { version = "2.0", features = ["full"] }  # 解析 Rust 源代码为抽象语法树（AST）用于读取和解析宏的输入代码

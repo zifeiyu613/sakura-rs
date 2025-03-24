@@ -33,6 +33,7 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/tools/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/a-flash/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/axum-code/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ssl-automator/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

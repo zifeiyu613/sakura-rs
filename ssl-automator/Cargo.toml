@@ -1,0 +1,26 @@
+[package]
+name = "ssl-automator"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+tokio = {workspace = true}
+chrono = {workspace = true}
+clap = { workspace = true, features = ["derive"] }
+sqlx = {workspace = true, features = ["runtime-tokio-rustls", "sqlite"]}
+serde = { workspace = true, features = ["derive"] }
+log = {workspace = true}
+env_logger = {workspace = true}
+serde_json = {workspace = true}
+reqwest = {workspace = true, features = ["json"]}
+
+acme-lib = { workspace = true}      # 现代的 ACME v2 协议实现
+notify = { workspace = true}
+notify-rust = { workspace = true}
+tokio-cron-scheduler = { workspace = true}
+shellexpand = { workspace = true}         # 展开路径中的环境变量
+openssl = {workspace = true}
+
+anyhow = {workspace = true}           # 错误处理
+thiserror = {workspace = true}        # 错误定义
