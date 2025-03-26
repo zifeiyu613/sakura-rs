@@ -1,13 +1,7 @@
-use axum::{
-    routing::{get, post},
-    extract::State,
-    http::StatusCode,
-    Json, Router,
-};
+use axum::{routing::{get, post}, extract::State, http::StatusCode, Json, Router, middleware};
 use serde::{Deserialize, Serialize};
 use std::{env, process::Command, sync::Arc, time::Duration};
 use tokio::time::sleep;
-use tower_http::trace::TraceLayer;
 use tracing::{info, error, warn};
 
 // 应用状态
@@ -59,7 +53,6 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         .route("/health", get(health_check))
         .route("/restart-nginx", post(restart_nginx))
-        .layer(TraceLayer::new_for_http())
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind(&addr).await?;
