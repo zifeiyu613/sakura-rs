@@ -6,7 +6,7 @@ use std::{
 };
 use std::fs::{File, Permissions};
 use std::io::{Read, Write};
-use std::os::unix::fs::PermissionsExt;
+// use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::process::Output;
 use log::info;
@@ -158,8 +158,7 @@ impl ServiceManager {
     // 为每个服务实例创建独立的工作目录
     pub(crate) fn prepare_environment(&self) -> Result<(), Error> {
         fs::create_dir_all(&self.config.work_dir)?;
-        fs::set_permissions(&self.config.work_dir,
-                            Permissions::from_mode(0o755))?;
+        // fs::set_permissions(&self.config.work_dir, Permissions::from_mode(0o755))?;
         Ok(())
     }
 

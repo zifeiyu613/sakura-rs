@@ -1,6 +1,7 @@
 use axum::{extract::{Request, State}, http::{header, StatusCode}, middleware, middleware::Next, response::Response};
 use std::sync::Arc;
 use axum::middleware::FromFnLayer;
+use tower::Layer;
 use crate::domain::services::auth_service::AuthService;
 use crate::error::AppError;
 use crate::server::AppState;
@@ -14,7 +15,11 @@ use crate::server::AppState;
 //     middleware::from_fn_with_state(state, auth_middleware)
 // }
 
-pub fn layer(state: Arc<AppState>) -> impl tower::Layer<axum::routing::MethodRouter> + Clone {
+// pub fn layer(state: Arc<AppState>) -> impl tower::Layer<axum::routing::MethodRouter> + Clone {
+//     middleware::from_fn_with_state(state, auth_middleware)
+// }
+
+pub fn layer(state: AppState) -> impl Layer<axum::routing::Route> + Clone {
     middleware::from_fn_with_state(state, auth_middleware)
 }
 

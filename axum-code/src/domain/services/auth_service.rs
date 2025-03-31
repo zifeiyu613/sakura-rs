@@ -1,4 +1,7 @@
 use std::sync::Arc;
+use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
+use argon2::password_hash::rand_core::OsRng;
+use argon2::password_hash::SaltString;
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation, Algorithm};
 use serde::{Deserialize, Serialize};
@@ -249,18 +252,21 @@ impl AuthService {
 
     fn hash_password(&self, password: &str) -> Result<String, AppError> {
         // 使用 Argon2 哈希密码
-        let salt = rand::random::<[u8; 32]>();
-        let config = argon2::Config::default();
+        // let salt = rand::random::<[u8; 32]>();
+        let salt = SaltString::generate(&mut OsRng);
+        let argon2 = Argon2::default();
 
-        let hash = argon2::hash_encoded(password.as_bytes(), &salt, &config)
-            .map_err(|e| AppError::Internal(format!("Failed to hash password: {}", e)))?;
+        let hash = argon2.hash_password(password.as_bytes(), &salt)
+            .map_err(|e| AppError::Internal(format!("Failed to hash password: {}", e)))?
+            .to_string();
 
         Ok(hash)
     }
 
     fn verify_password(&self, password: &str, hash: &str) -> Result<bool, AppError> {
-        let is_valid = argon2::verify_encoded(hash, password.as_bytes())
-            .map_err(|e| AppError::Internal(format!("Failed to verify password: {}", e)))?;
+        let parsed_hash = PasswordHash::new(&hash)?;
+        let is_valid = Argon2::default().verify_password(password.as_bytes(), &parsed_hash)
+            .is_ok();
 
         Ok(is_valid)
     }

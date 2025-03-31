@@ -1,3 +1,5 @@
+use argon2::{Argon2, PasswordHash};
+use argon2::password_hash::Error;
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
@@ -35,6 +37,9 @@ pub enum AppError {
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 
+    #[error("IO error: {0}")]
+    Argon2(#[from] Error),
+
     #[error("Third party service error: {0}")]
     ThirdParty(String),
 
@@ -58,6 +63,7 @@ impl IntoResponse for AppError {
             AppError::RabbitMq(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Messaging error"),
             AppError::Config(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Configuration error"),
             AppError::Io(_) => (StatusCode::INTERNAL_SERVER_ERROR, "IO error"),
+            AppError::Argon2(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Argon2 error"),
             AppError::ThirdParty(_) => (StatusCode::BAD_GATEWAY, "External service error"),
             AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error"),
         };
