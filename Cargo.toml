@@ -2,7 +2,6 @@
 resolver = "2"
 members = [
     "crates/*",
-    "a-flash",
     "axum-code",
     "actix-code",
     "sakura-api",
@@ -22,6 +21,7 @@ rust-version = "1.85"
 [workspace.dependencies]
 actix-web = "4"
 actix-http = "3"
+
 futures = "0.3"
 futures-util = "0.3"
 
@@ -29,13 +29,13 @@ rayon = "1"
 
 axum = "0"
 axum-extra = "0"
-
+hyper = "1.6"
+tower = "0.5"
+tower-http = "0.6"
 sqlx = { version = "0.8", features = ["runtime-tokio", "mysql", "chrono"] }
 tokio = { version = "1", features = ["full"] }
-tower-http = {version = "0"}
 
 redis = {version = "0.29"}
-r2d2 = "0.8"
 bb8 = "0.9"
 bb8-redis = "0.21"
 bb8-lapin = "0.6.0"
@@ -71,7 +71,6 @@ block-padding = { version = "0.4.0-rc.2" }
 sha1 = "0"
 hmac = "0"
 
-id3 = "1"
 
 rand = "0.9.0-beta.3"
 
@@ -83,6 +82,9 @@ config = "0"
 tracing = "0"
 tracing-subscriber = "0"
 tracing-appender = "0"
+opentelemetry = {version = "0.29"}
+opentelemetry-otlp = {version = "0.29"}
+tracing-opentelemetry = {version = "0.30"}
 
 log = "0"
 env_logger = "0"
@@ -90,15 +92,9 @@ env_logger = "0"
 
 uuid = { version = "1.0", features = ["v4"] }
 url = "2.5"
+validator = "0.20"
+
 reqwest = "0.12"
-
-acme-lib = "0"       # ACME 协议
-openssl = "0"
-notify = "8"            # 文件监视
-notify-rust = "4"       # 系统通知
-tokio-cron-scheduler = "0" # 定时任务
-shellexpand = "3"       # 展开路径中的环境变量
-
 
 # Rust 中的 宏（macro）开发生态系统的核心组件，主要用于 自定义派生宏（procedural macro） 和 代码生成
 syn = { version = "2.0", features = ["full"] }  # 解析 Rust 源代码为抽象语法树（AST）用于读取和解析宏的输入代码
