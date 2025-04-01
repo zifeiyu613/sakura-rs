@@ -18,11 +18,11 @@ use crate::error::YiceError;
 #[derive(Clone)]
 struct CryptoConfig {
     key: String,
-    iv: String,
+    iv: [u8; 8],
 }
 
 impl CryptoConfig {
-    fn new(key: String, iv: String) -> CryptoConfig {
+    fn new(key: String, iv: [u8; 8]) -> CryptoConfig {
         CryptoConfig { key, iv }
     }
 }
@@ -68,8 +68,8 @@ async fn decrypt_middleware(
         } else {
             // 密文模式 - 进行 AES 解密
             // {(byte) 0x12, (byte) 0x34, (byte) 0x56, (byte) 0x78, (byte) 0x90, (byte) 0xAB, (byte) 0xCD, (byte) 0xEF}
-            let iv_bytes = [0x12, 0x34, 0x56, 0x78, 0x90, 0xAB, 0xCD, 0xEF_u8];
-            let crypto_config = CryptoConfig::new("spef11kg".to_string(), String::from_utf8_lossy(&iv_bytes).to_string());
+            let iv = [0x12, 0x34, 0x56, 0x78, 0x90, 0xAB, 0xCD, 0xEF_u8];
+            let crypto_config = CryptoConfig::new("spef11kg".to_string(), iv);
 
             decrypt_data(&form.data, &crypto_config)
                 .map_err(|_| StatusCode::BAD_REQUEST)?
@@ -96,9 +96,15 @@ async fn decrypt_middleware(
 use crypto_utils::symmetric::des::des_encrypt_string;
 
 fn decrypt_data(encrypted_data: &str, config: &CryptoConfig) -> Result<String, StatusCode> {
-    let key = config.key.as_bytes();
-    let iv = config.iv.as_bytes();
-    des_encrypt_string(key.try_into().unwrap(), encrypted_data, Some(iv.try_into().unwrap()))
+    let key1 = config.key.as_bytes();
+    println!("key1: {:?}", key1);
+    println!("key1.len: {:?}", key1.len());
+    let mut key = [0u8; 8];
+    key.copy_from_slice(key1);
+
+    let iv = config.iv;
+
+    des_encrypt_string(&key, encrypted_data, Some(iv))
         .map_err(|_| StatusCode::BAD_REQUEST)
 }
 
@@ -115,8 +121,8 @@ mod tests {
     fn test_decrypt_data() {
         let cpiter = "0OSQhJvlfRmcbqDk2S900CCCg32hO2U+m5Gs3tYEC9ZdgTRTBNbCO8DQLujuQtnJG+3hhfuIkA84CLNPxcvw4g0UEWczPnJBxZkFUtlS+HW/bTXg1zD2xp2UR/5oXkc+3aek0ejN07Oq5J0WESiyl1SBEaPveNKRAIehfkQmb7WZMolwF2bHTUuhAyAC5d085DcXhcnjXEpbJ9hPrvPJcdvs1eLxWGZqc8A59yAxfwVLV/Kp76wALFuipzxy9tfexcNjbYvqaqLBbvH4cvYQtA==";
 
-        let iv_bytes = [0x12, 0x34, 0x56, 0x78, 0x90, 0xAB, 0xCD, 0xEF_u8];
-        let decrypt = decrypt_data(cpiter, &CryptoConfig::new("spef11kg".to_string(), String::from(iv_bytes))).unwrap();
+        let iv_bytes = [0x12, 0x34, 0x56, 0x78, 0x90, 0xAB, 0xCD, 0xEF];
+        let decrypt = decrypt_data(cpiter, &CryptoConfig::new("spef11kg".to_string(), iv_bytes)).unwrap();
 
         println!("{}", decrypt);
     }
