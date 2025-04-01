@@ -1,15 +1,15 @@
 use crate::config::Config;
 use crate::error::YiceError;
 use crate::infrastructure::database::DbManager;
-use axum::{Json, Router};
+use crate::middleware::request_logger::log_request;
 use axum::extract::State;
 use axum::response::IntoResponse;
 use axum::routing::get;
-use std::sync::Arc;
+use axum::{middleware, Json, Router};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use sqlx::{FromRow, Type};
+use sqlx::FromRow;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -42,6 +42,7 @@ pub async fn create_app() -> Result<Router, YiceError> {
     let router = Router::new()
         .route("/", get(|| async { "<h1>Hello, World!</h1>" }))
         .route("/test", get(handle_test))
+        .layer(middleware::from_fn(log_request))
         .with_state(shared_state);
 
     Ok(router)
