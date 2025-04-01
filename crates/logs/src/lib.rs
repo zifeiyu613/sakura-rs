@@ -1,55 +1,15 @@
-use serde::Deserialize;
 use std::fmt::Debug;
-use std::fs;
-use std::path::Path;
-use tracing::instrument::WithSubscriber;
+
 use tracing::Level;
 use tracing::level_filters::LevelFilter;
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber::fmt::time::ChronoLocal;
 use tracing_subscriber::fmt::{self, writer::MakeWriterExt};
-use tracing_subscriber::{filter, prelude::*, registry::Registry};
-use tracing_subscriber::filter::Filtered;
+use tracing_subscriber::{prelude::*, registry::Registry};
 use config::app_config;
-use config::app_config::AppConfig;
-
-// #[derive(Deserialize)]
-// struct Config {
-//     logging: LoggingConfig,
-//     audit: AuditConfig,
-// }
-//
-// #[derive(Deserialize)]
-// struct LoggingConfig {
-//     log_level: String,
-//     log_path: String,
-//     file_rotation: String,
-//     log_format: String,
-// }
-//
-// #[derive(Deserialize)]
-// struct AuditConfig {
-//     enabled: bool,
-//     audit_log_level: String,
-// }
-
-// /// 加载 TOML 配置文件
-// fn load_config<P: AsRef<Path>>(path: P) -> Config {
-//     // let file = File::open(path).expect("无法打开配置文件");
-//     let config_content = fs::read_to_string(&path).unwrap_or_else(|_| {
-//         panic!(
-//             "❌ 读取 `{}` 失败，请确保配置文件存在",
-//             &path.as_ref().display()
-//         )
-//     });
-//
-//     let config: Config = toml::de::from_str(&config_content).expect("无法解析配置文件");
-//     config
-// }
 
 /// 初始化日志系统：设置常规日志和审计日志的输出目标
 pub fn init_logging() {
-    // let config = load_config(Path::new("config.toml"));
 
     let config= app_config::get_config().unwrap().log;
 

@@ -4,35 +4,49 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-actix-web = {workspace = true}
-tokio = {workspace = true, features = ["full"]}
+# Web 框架
+axum = {workspace = true}
+tower = {workspace = true}
+tower-http = {workspace = true, features = ["cors", "trace", "timeout"] }
+hyper = {workspace = true}
+tokio = {workspace = true, features = ["full"] }
 
-serde = {workspace = true, features = ["derive"]}
+# 序列化/反序列化
+serde = {workspace = true, features = ["derive"] }
 serde_json = {workspace = true}
 
-sqlx = {workspace = true, features = ["runtime-tokio", "mysql", "chrono"]}
-chrono = {workspace = true}
+# 数据库
+sqlx = {workspace = true, features = ["runtime-tokio", "tls-rustls-ring-webpki", "mysql", "chrono", "json"] }
+redis = {workspace = true, features = ["tokio-comp"] }
 
-clap = {workspace = true}
+# 消息队列
+lapin = {workspace = true}  # RabbitMQ 客户端
 
+# 认证
+jsonwebtoken = {version = "9.3"}
+argon2 = {version = "0.5"}
+rand = {workspace = true}
 
-reqwest = {workspace = true, features = ["json"]}
-
-
-# Log
+# 日志和监控
 tracing = {workspace = true}
-tracing-subscriber = {workspace = true, features = ["chrono", "json"] }
+tracing-subscriber = {workspace = true, features = ["env-filter", "json"] }
+opentelemetry = {workspace = true}
+opentelemetry-otlp = {workspace = true}
+tracing-opentelemetry = {workspace = true}
 
-inventory = {workspace = true}
+# 配置
+config = {workspace = true}
+dotenvy = {workspace = true}
 
-common = {path = "../crates/common"}
-config = {path = "../crates/config"}
-database = {path = "../crates/database"}
-mq = {path = "../crates/mq"}
-redis = {path = "../crates/redis"}
-middleware = {path = "../crates/middleware"}
-sakura-macros = {path = "../crates/macros"}
-logs = {path = "../crates/logs"}
-web-core = {path = "../crates/web-core"}
+# 错误处理
+thiserror = {workspace = true}
+anyhow = {workspace = true}
 
-[dev-dependencies]
+# 工具
+chrono = {workspace = true, features = ["serde"] }
+uuid = {workspace = true, features = ["v4", "serde"] }
+async-trait = {workspace = true}
+validator = {workspace = true, features = ["derive"] }
+
+# 微服务相关
+tonic = {version = "0.13"}  # gRPC 框架

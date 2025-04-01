@@ -1,21 +1,29 @@
-mod app;
+use tracing::log::info;
+use crate::app::create_app;
+
+mod infrastructure;
 mod service;
-mod repository;
-mod controller;
+mod api;
+mod app;
+mod config;
+mod error;
 
-
-use web_core::web_service::{WebServerManager, WebService};
-
-
-#[actix_web::main]
+#[tokio::main]
 async fn main() {
-    let manager = WebServerManager::new(8080);
-    manager.start_server().await.expect("TODO: panic message");
+
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .with_target(true)  // 显示日志来源
+        .with_thread_ids(true)  // 显示线程ID
+        .init();
+
+    let app = create_app().await.unwrap();
+
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
+
+    println!("server started on port 3000");
+    info!("listening on port 3000");
+    axum::serve(listener, app).await.unwrap();
+
 }
 
-
-
-pub async fn stop() {
-    let manager = WebServerManager::new(8080);
-    manager.stop_server().await;
-}

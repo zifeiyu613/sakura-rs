@@ -682,39 +682,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "axum-code"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "argon2",
- "async-trait",
- "axum",
- "chrono",
- "config 0.15.8",
- "dotenvy",
- "hyper",
- "jsonwebtoken",
- "lapin",
- "opentelemetry",
- "opentelemetry-otlp",
- "rand 0.9.0",
- "redis 0.29.1",
- "serde",
- "serde_json",
- "sqlx",
- "thiserror 2.0.11",
- "tokio",
- "tonic 0.13.0",
- "tower",
- "tower-http",
- "tracing",
- "tracing-opentelemetry",
- "tracing-subscriber",
- "uuid",
- "validator",
-]
-
-[[package]]
 name = "axum-core"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4040,7 +4007,6 @@ dependencies = [
  "tokio-stream",
  "tracing",
  "url",
- "uuid",
  "webpki-roots",
 ]
 
@@ -4123,7 +4089,6 @@ dependencies = [
  "stringprep",
  "thiserror 2.0.11",
  "tracing",
- "uuid",
  "whoami",
 ]
 
@@ -4162,7 +4127,6 @@ dependencies = [
  "stringprep",
  "thiserror 2.0.11",
  "tracing",
- "uuid",
  "whoami",
 ]
 
@@ -4188,7 +4152,6 @@ dependencies = [
  "sqlx-core",
  "tracing",
  "url",
- "uuid",
 ]
 
 [[package]]
@@ -5357,26 +5320,33 @@ dependencies = [
 name = "yice-api"
 version = "0.1.0"
 dependencies = [
- "actix-web",
+ "anyhow",
+ "argon2",
+ "async-trait",
+ "axum",
  "chrono",
- "clap",
- "common",
- "config 0.1.0",
- "database",
- "inventory",
- "logs",
- "middleware",
- "mq",
- "redis 0.1.0",
- "reqwest",
- "sakura-macros",
+ "config 0.15.8",
+ "dotenvy",
+ "hyper",
+ "jsonwebtoken",
+ "lapin",
+ "opentelemetry",
+ "opentelemetry-otlp",
+ "rand 0.9.0",
+ "redis 0.29.1",
  "serde",
  "serde_json",
  "sqlx",
+ "thiserror 2.0.11",
  "tokio",
+ "tonic 0.13.0",
+ "tower",
+ "tower-http",
  "tracing",
+ "tracing-opentelemetry",
  "tracing-subscriber",
- "web-core",
+ "uuid",
+ "validator",
 ]
 
 [[package]]

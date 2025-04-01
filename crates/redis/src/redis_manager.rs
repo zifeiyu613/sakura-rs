@@ -12,6 +12,9 @@ pub enum RedisPoolError {
     #[error("Failed to initialize Redis pool: {0}")]
     InitializationError(String),
 
+    #[error("Redis operator error: {0}")]
+    OperatorError(#[from] redis::RedisError),
+
     #[error("Pool timed out")]
     PoolTimeout,
 
@@ -20,9 +23,6 @@ pub enum RedisPoolError {
 
     #[error("Runtime error: {0}")]
     RuntimeError(String),
-
-    #[error("Redis operator error: {0}")]
-    OperatorError(#[from] bb8_redis::redis::RedisError),
 
     #[error("User code error: {0}")]
     UserError(String),
