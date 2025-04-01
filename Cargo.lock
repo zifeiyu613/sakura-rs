@@ -1176,6 +1176,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "crypto-utils"
+version = "0.1.0"
+source = "git+https://github.com/zifeiyu613/crypto-utils.git?branch=main#f4b9d0499a6c6c1ef39aeb0b67d145f0b60ff8fb"
+dependencies = [
+ "aes",
+ "base64 0.22.1",
+ "cbc",
+ "cipher",
+ "des",
+ "hex",
+ "hmac",
+ "pbkdf2",
+ "rand 0.8.5",
+ "rsa",
+ "sha2",
+ "thiserror 2.0.11",
+]
+
+[[package]]
 name = "darling"
 version = "0.20.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3499,6 +3518,7 @@ dependencies = [
  "pkcs1",
  "pkcs8",
  "rand_core 0.6.4",
+ "sha2",
  "signature",
  "spki",
  "subtle",
@@ -5326,6 +5346,7 @@ dependencies = [
  "axum",
  "chrono",
  "config 0.15.8",
+ "crypto-utils",
  "dotenvy",
  "hyper",
  "jsonwebtoken",
@@ -5336,6 +5357,7 @@ dependencies = [
  "redis 0.29.1",
  "serde",
  "serde_json",
+ "serde_urlencoded",
  "sqlx",
  "thiserror 2.0.11",
  "tokio",
