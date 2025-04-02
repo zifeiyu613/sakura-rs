@@ -24,13 +24,13 @@ pub struct DatabaseConfig {
 impl Config {
     pub async fn load() -> Result<Self, YiceError> {
 
-        let config_path = dotenvy::var("CONFIG_PATH").unwrap_or_else(|_| "./yice-api/".to_string());
+        let config_path = dotenvy::var("CONFIG_PATH").unwrap_or_else(|_| "./yice-api/config/".to_string());
 
         info!("Loading configuration from {}", &config_path);
         info!("Loading configuration from {}", Path::new(&config_path).parent().unwrap().display());
 
         let builder = config::Config::builder()
-            .add_source(File::from(Path::new(&config_path).join("config.toml")))
+            .add_source(File::from(Path::new(&config_path).join("application.toml")))
             .add_source(Environment::with_prefix("APP").separator("__"));
 
         let config = builder.build()?;

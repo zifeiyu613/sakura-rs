@@ -8,6 +8,7 @@ mod app;
 mod config;
 mod error;
 mod middleware;
+mod domain;
 
 #[tokio::main]
 async fn main() {
