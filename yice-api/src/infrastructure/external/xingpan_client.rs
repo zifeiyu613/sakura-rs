@@ -127,7 +127,7 @@ mod tests {
         let xingpan = XingpanDTO {
             longitude: 121.4737,
             latitude: 31.2304,
-            time_zone: "8q".to_string(),
+            time_zone: "8".to_string(),
             birthday: "2000-01-01 12:30:00".to_string(),
             transit_day: "1990-01-01 08:30:12".to_string(),
             sex: 1,

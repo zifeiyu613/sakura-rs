@@ -55,8 +55,7 @@ impl BaziClient {
         year_type: i32,
     ) -> Result<String, YiceError> {
         // 解析日期
-        let date = chrono::NaiveDateTime::parse_from_str(birthday, "%Y-%m-%d %H:%M")
-            .map_err(|e| YiceError::Custom(e.to_string()))?;
+        let date = chrono::NaiveDateTime::parse_from_str(birthday, "%Y-%m-%d %H:%M")?;
 
         // 构建查询参数
         let mut query_params = HashMap::new();

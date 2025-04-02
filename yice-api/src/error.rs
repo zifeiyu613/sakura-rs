@@ -6,6 +6,7 @@ use axum::{
 use chrono::ParseError;
 use serde_json::json;
 use thiserror::Error;
+use url::form_urlencoded::Parse;
 
 #[derive(Error, Debug)]
 pub enum YiceError {
@@ -49,11 +50,18 @@ pub enum YiceError {
     #[error("HTTP request error")]
     HttpError(#[from] reqwest::Error),
 
+    #[error("Url parse error:{0}")]
+    UrlParseError(#[from] url::ParseError),
+
     #[error("Date parse error:{0}")]
     DateParseError(#[from] ParseError),
 
     #[error("Data parse error:{0}")]
     DataParseError(#[from] serde_json::error::Error),
+
+    #[error("Urlencoded parse error:{0}")]
+    UrlencodedParseError(#[from] serde_urlencoded::ser::Error),
+
 
     #[error("HMAC error")]
     HmacError,
