@@ -1,4 +1,4 @@
-use crate::third_party::error::ThirdPartyError;
+use crate::error::YiceError;
 use chrono::prelude::*;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -30,7 +30,7 @@ pub struct XingpanResponse {
 async fn post(
     endpoint: &str,
     params: HashMap<&str, &str>,
-) -> Result<Option<String>, ThirdPartyError> {
+) -> Result<Option<String>, YiceError> {
     let url = format!("{}{}", URL, endpoint);
     let client = Client::new();
     let response = client.post(&url).form(&params).send().await?;
@@ -40,12 +40,12 @@ async fn post(
         let body = response.text().await?;
         Ok(Some(body))
     } else {
-        Err(ThirdPartyError::Custom(format!("请求状态码异常: {:?}", response)))
+        Err(YiceError::CustomError(format!("请求状态码异常: {:?}", response)))
     }
 }
 
 /// 获取年运语料
-pub async fn luck_year(xingpan: &XingpanDTO) -> Result<XingpanResponse, ThirdPartyError> {
+pub async fn luck_year(xingpan: &XingpanDTO) -> Result<XingpanResponse, YiceError> {
     // 创建一个 HashMap 来存储表单数据
     let mut params = HashMap::new();
 
@@ -70,12 +70,12 @@ pub async fn luck_year(xingpan: &XingpanDTO) -> Result<XingpanResponse, ThirdPar
 }
 
 /// 八字基础信息
-pub async fn get_eight_char(xingpan: &XingpanDTO) -> Result<XingpanResponse, ThirdPartyError> {
+pub async fn get_eight_char(xingpan: &XingpanDTO) -> Result<XingpanResponse, YiceError> {
     let path = "eightchar/get";
 
     // 解析生日字符串
     let date = NaiveDateTime::parse_from_str(&xingpan.birthday, "%Y-%m-%d %H:%M")
-        .map_err(|e| ThirdPartyError::DateParseError(e))?;
+        .map_err(|e| YiceError::DateParseError(e))?;
 
     // 准备请求参数
     let mut params = HashMap::new();
@@ -107,7 +107,7 @@ pub async fn get_eight_char(xingpan: &XingpanDTO) -> Result<XingpanResponse, Thi
     }
 }
 
-pub fn parse_data(res: Option<String>) -> Result<XingpanResponse, ThirdPartyError> {
+pub fn parse_data(res: Option<String>) -> Result<XingpanResponse, YiceError> {
     match res {
         None => Ok(XingpanResponse {
             code: 0,
@@ -115,7 +115,7 @@ pub fn parse_data(res: Option<String>) -> Result<XingpanResponse, ThirdPartyErro
             data: Default::default(),
         }),
         Some(body) => Ok(serde_json::from_str::<XingpanResponse>(&body)
-            .map_err(ThirdPartyError::DataParseError)?),
+            .map_err(YiceError::DataParseError)?),
     }
 }
 

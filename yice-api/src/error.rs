@@ -3,6 +3,7 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
+use chrono::ParseError;
 use serde_json::json;
 use thiserror::Error;
 
@@ -44,6 +45,21 @@ pub enum YiceError {
 
     #[error("Bad request: {0}")]
     BadRequest(String),
+
+    #[error("HTTP request error")]
+    HttpError(#[from] reqwest::Error),
+
+    #[error("Date parse error:{0}")]
+    DateParseError(#[from] ParseError),
+
+    #[error("Data parse error:{0}")]
+    DataParseError(#[from] serde_json::error::Error),
+
+    #[error("HMAC error")]
+    HmacError,
+
+    #[error("Custom server error: {0}")]
+    CustomError(String),
 }
 
 impl IntoResponse for YiceError {
@@ -61,6 +77,11 @@ impl IntoResponse for YiceError {
             YiceError::Io(_) => (StatusCode::INTERNAL_SERVER_ERROR, "IO error"),
             YiceError::ThirdParty(_) => (StatusCode::BAD_GATEWAY, "External service error"),
             YiceError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error"),
+            YiceError::HmacError => (StatusCode::INTERNAL_SERVER_ERROR, "HMAC error"),
+            YiceError::CustomError(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error"),
+            YiceError::HttpError(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Http error"),
+            _ => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error"),
+
         };
 
         let body = Json(json!({

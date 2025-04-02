@@ -1,4 +1,4 @@
-use crate::third_party::error::ThirdPartyError;
+use crate::error::YiceError;
 use base64::{Engine as _, engine::general_purpose};
 use chrono::Utc;
 use hmac::{Hmac, Mac};
@@ -28,12 +28,12 @@ impl BaziClient {
         Utc::now().format("%a, %d %b %Y %H:%M:%S GMT").to_string()
     }
 
-    fn get_authorization(&self) -> Result<String, ThirdPartyError> {
+    fn get_authorization(&self) -> Result<String, YiceError> {
         let datetime = Self::get_datetime();
         let sign_str = format!("x-date: {}", datetime);
 
         let mut mac = Hmac::<Sha1>::new_from_slice(self.secret_key.as_bytes())
-            .map_err(|_| ThirdPartyError::HmacError)?;
+            .map_err(|_| YiceError::HmacError)?;
         mac.update(sign_str.as_bytes());
 
         let signature = general_purpose::STANDARD.encode(mac.finalize().into_bytes());
@@ -53,10 +53,10 @@ impl BaziClient {
         sex: &str,
         birthday: &str,
         year_type: i32,
-    ) -> Result<String, ThirdPartyError> {
+    ) -> Result<String, YiceError> {
         // 解析日期
         let date = chrono::NaiveDateTime::parse_from_str(birthday, "%Y-%m-%d %H:%M")
-            .map_err(|e| ThirdPartyError::Custom(e.to_string()))?;
+            .map_err(|e| YiceError::Custom(e.to_string()))?;
 
         // 构建查询参数
         let mut query_params = HashMap::new();

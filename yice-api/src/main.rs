@@ -2,7 +2,6 @@ use tracing::log::info;
 use crate::app::create_app;
 
 mod infrastructure;
-mod service;
 mod api;
 mod app;
 mod config;
