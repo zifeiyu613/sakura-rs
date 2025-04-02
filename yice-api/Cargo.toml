@@ -49,7 +49,8 @@ uuid = {workspace = true, features = ["v4", "serde"] }
 async-trait = {workspace = true}
 validator = {workspace = true, features = ["derive"] }
 
-crypto-utils = {git = "https://github.com/zifeiyu613/crypto-utils.git", branch = "main"}
+crypto-utils = {git = "https://github.com/zifeiyu613/crypto-utils.git", branch = "dev"}
 
 # 微服务相关
-tonic = {version = "0.13"}  # gRPC 框架
+tonic = {version = "0.13"}
+http-body-util = "0.1.3"  # gRPC 框架

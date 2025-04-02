@@ -1,7 +1,7 @@
 use crate::config::Config;
 use crate::error::YiceError;
 use crate::infrastructure::database::DbManager;
-use crate::middleware::request_logger::log_request;
+use crate::middleware::{logger::log_request, decryptor::decrypt};
 use axum::extract::State;
 use axum::response::IntoResponse;
 use axum::routing::get;
@@ -41,8 +41,10 @@ pub async fn create_app() -> Result<Router, YiceError> {
 
     let router = Router::new()
         .route("/", get(|| async { "<h1>Hello, World!</h1>" }))
-        .route("/test", get(handle_test))
+        .route("/test", get(handle_test).post(handle_test))
         .layer(middleware::from_fn(log_request))
+        .layer(middleware::from_fn(decrypt))
+        // .route_layer(middleware::from_fn_with_state(shared_state.clone(), decrypt))
         .with_state(shared_state);
 
     Ok(router)
