@@ -1,4 +1,4 @@
-use crate::api::{landing_pages, recharges};
+use crate::api::{home, landing_pages, recharges};
 use crate::config::Config;
 use crate::error::YiceError;
 use crate::infrastructure::database::DbManager;
@@ -47,6 +47,7 @@ pub async fn create_app() -> Result<Router, YiceError> {
     // });
 
     let yice_routes = Router::new()
+        .nest("/home", home::routes(shared_state.clone()))
         .nest("/web", landing_pages::routes())
         .nest("/recharge", recharges::routes());
 

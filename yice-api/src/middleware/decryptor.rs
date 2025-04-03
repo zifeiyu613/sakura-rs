@@ -10,8 +10,7 @@ use axum::{
 use crypto_utils::prelude::des_decrypt_string;
 use serde::Deserialize;
 use serde_json::Value;
-use tracing::debug;
-use tracing::log::{info, warn};
+use tracing::log::{info, warn, debug};
 
 // 定义 AES 解密所需的密钥和 IV
 #[derive(Clone)]

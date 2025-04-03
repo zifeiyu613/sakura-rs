@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 use axum::{
     extract::{FromRequestParts, Path},
     http::{request::Parts, StatusCode},
@@ -6,12 +7,20 @@ use axum::{
     routing::get,
     RequestPartsExt, Router,
 };
+use axum::extract::State;
+use axum::handler::Handler;
+use tracing::log::info;
+use crate::app::AppState;
 
-fn routes() -> Router {
+pub fn routes<S>(state: Arc<AppState>) -> Router<S> {
     Router::new().route("/{version}/foo", get(handler))
+        .with_state(state)
 }
 
-async fn handler(version: Version) -> Html<String> {
+async fn handler(State(state): State<Arc<AppState>>,
+                 version: Version) -> Html<String> {
+    info!("Got a version: {:?}", version);
+    info!("state config: {:?}", state.config.clone());
     Html(format!("received request with version {version:?}"))
 }
 
