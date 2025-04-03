@@ -7,7 +7,7 @@ use axum::{
     RequestPartsExt, Router,
 };
 
-fn home_router() -> Router {
+fn routes() -> Router {
     Router::new().route("/{version}/foo", get(handler))
 }
 
@@ -54,7 +54,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_v1() {
-        let response = home_router()
+        let response = routes()
             .oneshot(
                 Request::builder()
                     .uri("/v1/foo")
@@ -74,7 +74,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_v4() {
-        let response = home_router()
+        let response = routes()
             .oneshot(
                 Request::builder()
                     .uri("/v4/foo")

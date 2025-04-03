@@ -5,7 +5,7 @@ use sqlx::MySqlPool;
 use crate::config::Config;
 use crate::error::YiceError;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct DbManager {
     pools: HashMap<String, MySqlPool>,
 }

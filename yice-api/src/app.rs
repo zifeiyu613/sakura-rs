@@ -1,17 +1,18 @@
+use crate::api::{landing_pages, recharges};
 use crate::config::Config;
 use crate::error::YiceError;
 use crate::infrastructure::database::DbManager;
-use crate::middleware::{logger::log_request, decryptor::decrypt};
+use crate::middleware::{decryptor::decrypt, logger::log_request};
 use axum::extract::State;
 use axum::response::IntoResponse;
 use axum::routing::get;
-use axum::{middleware, Json, Router};
+use axum::{middleware, Extension, Json, Router};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use std::sync::Arc;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct AppState {
     /// 配置
     pub config: Config,
@@ -39,12 +40,24 @@ pub async fn create_app() -> Result<Router, YiceError> {
 
     let shared_state = Arc::new(state);
 
+    // 创建一个设置扩展的中间件
+    // let set_extensions = middleware::from_fn(move |mut req: Request, next: Next| {
+    //     req.extensions_mut().insert(shared_state.clone());
+    //     next.run(req)
+    // });
+
+    let yice_routes = Router::new()
+        .nest("/web", landing_pages::routes())
+        .nest("/recharge", recharges::routes());
+
     let router = Router::new()
         .route("/", get(|| async { "<h1>Hello, World!</h1>" }))
         .route("/test", get(handle_test).post(handle_test))
+        .route("/test1", get(handle_test1).post(handle_test1))
+        .nest_service("/yice", yice_routes)
         .layer(middleware::from_fn(log_request))
         .layer(middleware::from_fn(decrypt))
-        // .route_layer(middleware::from_fn_with_state(shared_state.clone(), decrypt))
+        .layer(Extension(shared_state.clone()))
         .with_state(shared_state);
 
     Ok(router)
@@ -63,6 +76,22 @@ struct TradeOrderArchivesRelation {
 }
 
 async fn handle_test(State(state): State<Arc<AppState>>) -> Result<impl IntoResponse, YiceError> {
+    // 获取 sm_phoenix 数据库连接池
+    let pool = state
+        .db_manager
+        .sm_phoenix()
+        .ok_or_else(|| YiceError::Internal("sm_phoenix database not available".to_string()))?;
+
+    let row: Option<TradeOrderArchivesRelation> = sqlx::query_as(r#"SELECT *  FROM t_trade_order_archives_relation WHERE id = ?"#)
+        .bind(13674)
+        .fetch_optional(pool)
+        .await?;
+
+    Ok(Json(row))
+
+}
+
+async fn handle_test1(Extension(state): Extension<Arc<AppState>>) -> Result<impl IntoResponse, YiceError> {
     // 获取 sm_phoenix 数据库连接池
     let pool = state
         .db_manager
