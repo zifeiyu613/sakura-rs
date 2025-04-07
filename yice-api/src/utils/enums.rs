@@ -1,7 +1,7 @@
 use sqlx::{Decode, Encode, Type};
 
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Type, Encode, Decode)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Type )]
 #[sqlx(type_name = "TINYINT")]
 pub enum State {
     Open = 1,

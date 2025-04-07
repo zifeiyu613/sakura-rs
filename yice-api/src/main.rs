@@ -9,6 +9,7 @@ mod error;
 mod middleware;
 mod domain;
 mod utils;
+mod dto;
 
 #[tokio::main]
 async fn main() {

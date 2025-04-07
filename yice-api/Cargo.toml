@@ -54,6 +54,8 @@ sha1 = {workspace = true}
 base64 = {workspace = true}
 url = {workspace = true}
 
+lru = "0.13.0"
+
 crypto-utils = {git = "https://github.com/zifeiyu613/crypto-utils.git", branch = "dev"}
 
 # 微服务相关

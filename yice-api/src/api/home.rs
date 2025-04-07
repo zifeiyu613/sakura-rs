@@ -60,10 +60,32 @@ mod tests {
     use axum::{body::Body, http::Request, http::StatusCode};
     use http_body_util::BodyExt;
     use tower::ServiceExt;
+    use crate::config::Config;
+    use crate::error::YiceError;
+    use crate::infrastructure::database::DbManager;
+
+
+    async fn init() -> Result<AppState, YiceError> {
+        // 加载配置
+        let config = Config::load().await?;
+
+        // 初始化数据库连接
+        let db_manager = DbManager::new(&config).await?;
+
+        let state = AppState {
+            config,
+            db_manager,
+        };
+
+        Ok(state)
+    }
 
     #[tokio::test]
     async fn test_v1() {
-        let response = routes()
+
+        let state = init().await.unwrap();
+
+        let response = routes(Arc::new(state))
             .oneshot(
                 Request::builder()
                     .uri("/v1/foo")
@@ -83,7 +105,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_v4() {
-        let response = routes()
+        let state = init().await.unwrap();
+
+        let response = routes(Arc::new(state))
             .oneshot(
                 Request::builder()
                     .uri("/v4/foo")
