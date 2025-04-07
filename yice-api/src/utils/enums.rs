@@ -1,9 +1,8 @@
-use sqlx::{MySql, Type};
-use sqlx::encode::IsNull;
-use sqlx::mysql::MySqlTypeInfo;
-use sqlx::mysql::MySqlArguments;
+use sqlx::{Decode, Encode, Type};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Type, Encode, Decode)]
+#[sqlx(type_name = "TINYINT")]
 pub enum State {
     Open = 1,
     Closed = 2,
