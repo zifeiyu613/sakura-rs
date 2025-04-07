@@ -38,8 +38,9 @@ impl DbManager {
         self.get("sm_phoenix")
     }
 
-    pub fn sakura_pay(&self) -> Option<&MySqlPool> {
-        self.get("sakura_pay")
+    pub fn sakura_pay(&self) -> Result<&MySqlPool, YiceError> {
+        let pool = self.get("sakura_pay");
+        pool.ok_or_else(|| YiceError::Internal("Unable to find sakura_pay database".to_string()))
     }
 
 }
