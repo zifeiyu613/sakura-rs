@@ -1,4 +1,4 @@
-use crate::app::AppState;
+use crate::server::AppState;
 use axum::http::header::CONTENT_TYPE;
 use axum::{
     body::{Body, Bytes},

@@ -1,13 +1,26 @@
 use sqlx::{Decode, Encode, Type};
 
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Type )]
-#[sqlx(type_name = "TINYINT")]
+#[sqlx(type_name = "TINYINT", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum State {
     Open = 1,
     Closed = 2,
     Deleted = 3,
 }
+
+impl State {
+    pub fn is_open(&self) -> bool {
+        matches!(self, State::Open)
+    }
+    pub fn is_closed(&self) -> bool {
+        matches!(self, State::Closed)
+    }
+
+}
+
+
+
+
 
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

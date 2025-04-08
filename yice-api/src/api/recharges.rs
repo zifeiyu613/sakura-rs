@@ -1,7 +1,5 @@
-use crate::app::AppState;
+use crate::server::AppState;
 use crate::error::YiceError;
-use crate::utils::constants::TENANT_ID;
-use crate::utils::enums;
 use axum::routing::post;
 use axum::{Extension, Json, Router};
 use serde::{Deserialize, Serialize};
@@ -10,6 +8,8 @@ use std::sync::Arc;
 use tracing::log::info;
 use url::Url;
 use crate::middleware::decryptor::RequestData;
+use crate::utils::enums;
+use app_enumeta::app_macro::App;
 
 pub(crate) fn routes() -> Router {
     let recharge_routes = Router::new().route("/getPayManageList", post(get_pay_manage_list));
@@ -53,7 +53,7 @@ async fn get_pay_manage_list(
     "#,)
     .bind(enums::State::Open)
     .bind(packagename)
-    .bind(TENANT_ID)
+    .bind(App::YiCe.id())
     .fetch_all(pool).await?;
 
     Ok(Json("get_pay_manage_list".to_string()))

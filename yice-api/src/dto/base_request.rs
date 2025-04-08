@@ -5,18 +5,20 @@ use serde_json::Value;
 // 基础请求字段结构
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaseRequest {
-    pub(crate) application: String,
-    pub(crate) channel: String,
+    application: Option<String>,
+    channel: Option<String>,
     #[serde(rename = "deviceCode")]
-    pub(crate) device_code: String,
+    device_code: Option<String>,
     #[serde(rename = "packageName")]
-    pub(crate) package_name: String,
-    #[serde(rename = "plainText")]
-    pub(crate) plain_text: bool,
-    pub(crate) source: u32,
+    package_name: Option<String>,
+    source: Option<u8>,
     #[serde(rename = "subChannel")]
-    pub(crate) sub_channel: String,
-    pub(crate) uid: u64,
+    sub_channel: Option<String>,
+
+    uid: u64,
+
+    #[serde(rename = "plainText")]
+    plain_text: Option<bool>,
 }
 
 
@@ -44,35 +46,32 @@ impl BaseRequest {
         self.uid
     }
 
-    pub fn application(&self) -> &str {
-        &self.application
+    pub(crate) fn application(&self) -> &str {
+        self.application.as_deref().unwrap_or("")
     }
 
     pub fn channel(&self) -> &str {
-        &self.channel
+        self.channel.as_deref().unwrap_or("")
     }
 
     pub fn sub_channel(&self) -> &str {
-        &self.sub_channel
+        &self.sub_channel.as_deref().unwrap_or("")
     }
 
-    pub fn source(&self) -> u32 {
+    pub fn source(&self) -> Option<u8> {
         self.source
     }
 
     pub fn device_code(&self) -> &str {
-        &self.device_code
+        &self.device_code.as_deref().unwrap_or("")
     }
 
     pub fn package_name(&self) -> &str {
-        &self.package_name
+        &self.package_name.as_deref().unwrap_or("")
     }
 
     pub fn plain_text(&self) -> bool {
-        self.plain_text
+        self.plain_text.unwrap_or(false)
     }
 
-
-
-    // 更多方法...
 }

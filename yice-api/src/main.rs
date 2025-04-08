@@ -1,15 +1,5 @@
 use tracing::log::info;
-use crate::app::create_app;
-
-mod infrastructure;
-mod api;
-mod app;
-mod config;
-mod error;
-mod middleware;
-mod domain;
-mod utils;
-mod dto;
+use yice_api::server::create_app;
 
 #[tokio::main]
 async fn main() {

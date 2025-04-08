@@ -10,7 +10,7 @@ use axum::{
 use axum::extract::State;
 use axum::handler::Handler;
 use tracing::log::info;
-use crate::app::AppState;
+use crate::server::AppState;
 
 pub fn routes<S>(state: Arc<AppState>) -> Router<S> {
     Router::new().route("/{version}/foo", get(handler))
