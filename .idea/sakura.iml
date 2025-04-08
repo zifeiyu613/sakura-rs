@@ -39,6 +39,7 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/app-enumeta/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/app-enumeta/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/yice-api/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/cards/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

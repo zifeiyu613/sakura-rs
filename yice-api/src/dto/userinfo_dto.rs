@@ -1,4 +1,4 @@
-use crate::dto::base_request::TypedRequest;
+use crate::dto::base_request_fields::TypedRequest;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 // use crate::dto::{DtoHandler, DynamicRequest};

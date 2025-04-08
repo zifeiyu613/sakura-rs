@@ -1,0 +1,64 @@
+[package]
+name = "cards"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+# Web 框架
+axum = {workspace = true}
+tower = {workspace = true}
+tower-http = {workspace = true, features = ["cors", "trace", "timeout"] }
+hyper = {workspace = true}
+tokio = {workspace = true, features = ["full"] }
+
+# 序列化/反序列化
+serde = {workspace = true, features = ["derive"] }
+serde_json = {workspace = true}
+serde_urlencoded = {workspace = true}
+
+# 数据库
+sqlx = {workspace = true, features = ["runtime-tokio", "tls-rustls-ring-webpki", "mysql", "chrono", "json"] }
+redis = {workspace = true, features = ["tokio-comp"] }
+
+# 消息队列
+lapin = {workspace = true}  # RabbitMQ 客户端
+
+# 认证
+jsonwebtoken = {version = "9.3"}
+argon2 = {version = "0.5"}
+rand = {workspace = true}
+
+# 日志和监控
+tracing = {workspace = true}
+tracing-subscriber = {workspace = true, features = ["env-filter", "json"] }
+opentelemetry = {workspace = true}
+opentelemetry-otlp = {workspace = true}
+tracing-opentelemetry = {workspace = true}
+
+# 配置
+config = {workspace = true}
+dotenvy = {workspace = true}
+
+# 错误处理
+thiserror = {workspace = true}
+anyhow = {workspace = true}
+
+# 工具
+chrono = {workspace = true, features = ["serde"] }
+uuid = {workspace = true, features = ["v4", "serde"] }
+async-trait = {workspace = true}
+validator = {workspace = true, features = ["derive"] }
+reqwest = {workspace = true, features = ["json"]}
+hmac = {workspace = true}
+sha1 = {workspace = true}
+base64 = {workspace = true}
+url = {workspace = true}
+
+# 缓存
+lru = "0.13.0"
+
+
+# 微服务相关
+tonic = {version = "0.13"}  # gRPC 框架
+http-body-util = "0.1.3"

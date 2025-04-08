@@ -6,7 +6,7 @@ members = [
     "sakura-api",
     "yice-api",
     "sakura-cli",
-    "nginx-restart-api",
+    "nginx-restart-api", "cards",
 ]
 
 [workspace.package]

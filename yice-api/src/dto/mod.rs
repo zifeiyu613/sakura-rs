@@ -5,15 +5,14 @@ use std::sync::Mutex;
 use lru::LruCache;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use crate::dto::base_request::{BaseRequest, DynamicRequest};
+use crate::dto::base_request_fields::{BaseRequest, DynamicRequest};
 use crate::dto::userinfo_dto::UserInfoDTO;
 
-pub(crate) mod base_request;
+pub(crate) mod base_request_fields;
 pub(crate) mod userinfo_dto;
 pub(crate) mod order_dto;
 mod response;
-
-
+mod extract;
 // // DTO处理接口特征
 // trait DtoHandler: Send + Sync {
 //     // 关联类型，表示处理器返回的具体类型
