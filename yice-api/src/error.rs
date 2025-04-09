@@ -4,9 +4,10 @@ use axum::{
     Json,
 };
 use chrono::ParseError;
-use serde_json::json;
+use serde_json::{json, Value};
 use thiserror::Error;
 use url::form_urlencoded::Parse;
+use crate::dto::response::ApiResponse;
 
 #[derive(Error, Debug)]
 pub enum YiceError {
@@ -70,6 +71,39 @@ pub enum YiceError {
     CustomError(String),
 }
 
+// impl IntoResponse for YiceError {
+//     fn into_response(self) -> Response {
+//         let (status, error_message) = match self {
+//             YiceError::Auth(_) => (StatusCode::UNAUTHORIZED, "Authentication error"),
+//             YiceError::Forbidden(_) => (StatusCode::FORBIDDEN, "Authorization error"),
+//             YiceError::NotFound(_) => (StatusCode::NOT_FOUND, "Resource not found"),
+//             YiceError::Validation(_) => (StatusCode::BAD_REQUEST, "Validation error"),
+//             YiceError::BadRequest(_) => (StatusCode::BAD_REQUEST, "Bad request"),
+//             YiceError::Database(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Database error"),
+//             YiceError::Redis(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Cache error"),
+//             YiceError::RabbitMq(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Messaging error"),
+//             YiceError::Config(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Configuration error"),
+//             YiceError::Io(_) => (StatusCode::INTERNAL_SERVER_ERROR, "IO error"),
+//             YiceError::ThirdParty(_) => (StatusCode::BAD_GATEWAY, "External service error"),
+//             YiceError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error"),
+//             YiceError::HmacError => (StatusCode::INTERNAL_SERVER_ERROR, "HMAC error"),
+//             YiceError::CustomError(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error"),
+//             YiceError::HttpError(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Http error"),
+//             _ => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error"),
+//
+//         };
+//
+//         let body = Json(json!({
+//             "error": {
+//                 "message": error_message,
+//                 "details": self.to_string()
+//             }
+//         }));
+//
+//         (status, body).into_response()
+//     }
+// }
+
 impl IntoResponse for YiceError {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
@@ -92,12 +126,10 @@ impl IntoResponse for YiceError {
 
         };
 
-        let body = Json(json!({
-            "error": {
-                "message": error_message,
-                "details": self.to_string()
-            }
-        }));
+        let body = Json(ApiResponse::<Value>::error(
+            status.as_u16() as i32,
+            &format!("{}", error_message)
+        ));
 
         (status, body).into_response()
     }

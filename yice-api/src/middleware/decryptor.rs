@@ -10,7 +10,7 @@ use axum::{
 use crypto_utils::prelude::des_decrypt_string;
 use serde::Deserialize;
 use serde_json::Value;
-use tracing::log::{info, warn, debug};
+use tracing::log::{debug, info, warn};
 
 // 定义 AES 解密所需的密钥和 IV
 #[derive(Clone)]
@@ -36,17 +36,12 @@ struct RequestForm {
 #[derive(Clone)]
 pub struct RequestData {
     pub original_body: Bytes,
-    pub processed_body: Option<String>,  // 解密后或处理后的数据
-    pub is_decrypted: bool,              // 标识数据是否已解密
-    pub json_data: Option<Value>,        // 解析后的JSON
+    pub processed_body: Option<String>, // 解密后或处理后的数据
+    pub is_decrypted: bool,             // 标识数据是否已解密
+    pub json_data: Option<Value>,       // 解析后的JSON
 }
 
-pub async fn decrypt(
-    mut request: Request,
-    next: Next,
-) -> Result<Response, StatusCode>
-
-{
+pub async fn decrypt(mut request: Request, next: Next) -> Result<Response, StatusCode> {
     // 检查内容类型
     let is_form = request
         .headers()

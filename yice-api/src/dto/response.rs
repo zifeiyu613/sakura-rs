@@ -1,3 +1,5 @@
+use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
 use serde::Serialize;
 
 // 使用泛型的API响应包装器
@@ -30,6 +32,27 @@ where
             code,
             message: message.to_string(),
             data: None,
+        }
+    }
+}
+
+impl<T> IntoResponse for ApiResponse<T>
+where
+    T: Serialize,
+{
+    fn into_response(self) -> Response {
+        match serde_json::to_string(&self) {
+            Ok(json) => {
+                Response::builder()
+                    .status(StatusCode::OK)
+                    .header("Content-Type", "application/json")
+                    .body(axum::body::Body::from(json))
+                    .unwrap()
+                    .into_response()
+            }
+            Err(_) => {
+                StatusCode::INTERNAL_SERVER_ERROR.into_response()
+            }
         }
     }
 }
