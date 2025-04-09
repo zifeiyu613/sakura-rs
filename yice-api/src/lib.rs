@@ -6,9 +6,13 @@ pub mod infrastructure;
 pub mod api;
 pub mod server;
 mod config;
-mod error;
 mod middleware;
 mod domain;
 
-mod dto;
+mod params;
+mod constants;
+
+mod status;
+
+mod errors;
 

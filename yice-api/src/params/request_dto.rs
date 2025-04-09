@@ -69,7 +69,7 @@ impl BaseRequestFields {
 
 /// 订单
 #[derive(Debug, Serialize, Deserialize)]
-pub(crate) struct OrderDTO {
+pub struct OrderDTO {
 
     pub pay_type: Option<u16>,
     pub pay_subtype: Option<u16>,
@@ -79,7 +79,7 @@ pub(crate) struct OrderDTO {
 
 /// 用户
 #[derive(Debug, Serialize, Deserialize)]
-pub(crate) struct UserInfoDTO {
+pub struct UserInfoDTO {
 
     pub username: Option<String>,
 
@@ -95,7 +95,7 @@ pub(crate) struct UserInfoDTO {
 //     #[serde(flatten)]
 //     pub base: BaseRequestFields,
 //     #[serde(flatten)]
-//     pub dto: T,
+//     pub params: T,
 // }
 //
 // // 完全动态的请求模型

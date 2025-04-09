@@ -1,5 +1,5 @@
 use crate::server::AppState;
-use crate::error::YiceError;
+use crate::errors::error::YiceError;
 use axum::routing::post;
 use axum::{Extension, Json, Router};
 use serde::{Deserialize, Serialize};
@@ -10,13 +10,13 @@ use serde_json::{json, Value};
 use tracing::log::info;
 use url::Url;
 use crate::middleware::decryptor::RequestData;
-use crate::utils::enums;
+use crate::constants::{enums, DEFAULT_PACKAGE_NAME};
 use app_enumeta::app_macro::App;
 use crate::domain::repositories;
-use crate::dto::request_dto::{OrderDTO, RequestDto};
-use crate::dto::response::ApiResponse;
-use repositories::pay_manage_repository::PayManageRepository;
-
+use repositories::PayManageRepository;
+use crate::errors::response::ApiResponse;
+use crate::params::{OrderDTO, RequestDto};
+use crate::status::BusinessCode;
 
 pub(crate) fn routes() -> Router {
     Router::new().route("/getPayManageList", post(get_pay_manage_list))
@@ -35,7 +35,7 @@ async fn get_pay_manage_list(
     );
     let pool = match state.db_manager.sakura_pay() {
         Ok(pool) => pool,
-        Err(err) => return Err(err),
+        Err(err) => return Err(err)
     };
 
     match (dto.base, dto.inner) {
@@ -54,7 +54,9 @@ async fn get_pay_manage_list(
                 App::YiCe.id(),
             ).await {
                 Ok(list) => list,
-                Err(err) => return Err(YiceError::from(err)),
+                Err(err) =>  {
+                    return Err(YiceError::from(err));
+                }
             };
             info!("result:{:?}", result);
 
@@ -62,7 +64,7 @@ async fn get_pay_manage_list(
                 info!("No packages found");
                 result = repository.get_list(
                     enums::State::Open,
-                    "com.yr.default",
+                    DEFAULT_PACKAGE_NAME,
                     App::YiCe.id(),
                 ).await?;
             }
@@ -74,8 +76,8 @@ async fn get_pay_manage_list(
             })))
         }
         _ => {
-            // 完全空请求
-            Ok(ApiResponse::success(json!({ "message": "接收到空请求" })))
+            // 空请求 - 使用错误类型
+            return Err(YiceError::BadRequest("接收到空请求参数".to_string()));
         }
     }
 }

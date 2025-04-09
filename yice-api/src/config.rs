@@ -3,7 +3,7 @@ use std::path::Path;
 use config::{Environment, File};
 use serde::Deserialize;
 use tracing::info;
-use crate::error::YiceError;
+use crate::errors::error::YiceError;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {

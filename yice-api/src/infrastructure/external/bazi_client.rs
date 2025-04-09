@@ -1,4 +1,4 @@
-use crate::error::YiceError;
+use crate::errors::error::YiceError;
 use base64::{Engine as _, engine::general_purpose};
 use chrono::Utc;
 use hmac::{Hmac, Mac};
@@ -6,6 +6,7 @@ use reqwest::Client;
 use sha1::Sha1;
 use std::collections::HashMap;
 use url::Url;
+use crate::status::BusinessCode;
 
 const BZ_URL: &str = "https://ap-guangzhou.cloudmarket-apigw.com/services-4mq5lolqo/bazi";
 
@@ -33,7 +34,7 @@ impl BaziClient {
         let sign_str = format!("x-date: {}", datetime);
 
         let mut mac = Hmac::<Sha1>::new_from_slice(self.secret_key.as_bytes())
-            .map_err(|_| YiceError::HmacError)?;
+            .map_err(|e| YiceError::business_with_message(BusinessCode::InvalidLength, e.to_string()))?;
         mac.update(sign_str.as_bytes());
 
         let signature = general_purpose::STANDARD.encode(mac.finalize().into_bytes());

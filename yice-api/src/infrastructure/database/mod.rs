@@ -3,7 +3,7 @@ use std::time::Duration;
 use sqlx::mysql::MySqlPoolOptions;
 use sqlx::MySqlPool;
 use crate::config::Config;
-use crate::error::YiceError;
+use crate::errors::error::YiceError;
 
 #[derive(Clone, Debug)]
 pub struct DbManager {

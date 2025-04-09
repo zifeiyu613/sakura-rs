@@ -1,5 +1,5 @@
 use crate::server::AppState;
-use crate::error::YiceError;
+use crate::errors::error::YiceError;
 use axum::extract::State;
 use axum::routing::get;
 use axum::{Extension, Json, Router};

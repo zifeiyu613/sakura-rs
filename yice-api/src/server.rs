@@ -1,6 +1,6 @@
 use crate::api::{home, landing_pages, recharges};
 use crate::config::Config;
-use crate::error::YiceError;
+use crate::errors::error::YiceError;
 use crate::infrastructure::database::DbManager;
 use crate::middleware::{decryptor::decrypt, logger::log_request};
 use axum::extract::State;

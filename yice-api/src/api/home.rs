@@ -61,7 +61,7 @@ mod tests {
     use http_body_util::BodyExt;
     use tower::ServiceExt;
     use crate::config::Config;
-    use crate::error::YiceError;
+    use crate::errors::error::YiceError;
     use crate::infrastructure::database::DbManager;
 
 

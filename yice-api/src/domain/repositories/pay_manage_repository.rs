@@ -1,6 +1,6 @@
 use sqlx::{MySql, Pool};
 use crate::domain::models::pay_manage::PayManageList;
-use crate::utils::enums;
+use crate::constants::enums;
 
 pub struct PayManageRepository<'a> {
     pool: &'a Pool<MySql>, // 或其他数据库类型

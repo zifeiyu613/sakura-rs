@@ -1,4 +1,4 @@
-use crate::error::YiceError;
+use crate::errors::error::YiceError;
 use chrono::prelude::*;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -6,6 +6,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::error::Error;
 use std::ops::Add;
+use crate::status::BusinessCode;
 
 const URL: &str = "http://yong.xingpan.vip/corpus/";
 const ACCESS_TOKEN: &str = "53b9dd693d75d16525480ebe1036ea35";
@@ -40,7 +41,7 @@ async fn post(
         let body = response.text().await?;
         Ok(Some(body))
     } else {
-        Err(YiceError::CustomError(format!("请求状态码异常: {:?}", response)))
+        Err(YiceError::business_with_message(BusinessCode::ThirdPartyServiceError, format!("请求状态码异常: {:?}", response)))
     }
 }
 

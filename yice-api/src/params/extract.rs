@@ -4,10 +4,10 @@ use axum::http::StatusCode;
 use axum::Json;
 use serde::Deserialize;
 use serde_json::Value;
-use crate::dto::request_dto::{BaseRequestFields, RequestDto};
-use crate::dto::response::ApiResponse;
+use crate::errors::response::ApiResponse;
+use crate::params::{BaseRequestFields, RequestDto};
 use crate::middleware::decryptor::RequestData;
-
+use crate::status::BusinessCode;
 
 // 提取器的实现
 impl<T, S> FromRequestParts<S> for RequestDto<T>
@@ -22,7 +22,7 @@ where
         let extension = parts.extensions.get::<RequestData>().ok_or_else(|| {
             (
                 StatusCode::BAD_REQUEST,
-                Json(ApiResponse::error(400, "解密数据不存在"))
+                Json(ApiResponse::error(BusinessCode::BadRequest, Some("解密数据不存在".to_string()))),
             )
         })?;
 
