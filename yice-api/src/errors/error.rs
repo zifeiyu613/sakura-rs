@@ -1,13 +1,13 @@
 //! 应用错误类型定义
 
+use axum::response::{IntoResponse, Response};
 use chrono::ParseError;
 use thiserror::Error;
-use crate::status::BusinessCode;
 use serde_json::Value;
-
+use crate::errors::{error_response, get_http_status, BusinessCode};
 
 #[derive(Debug, Error)]
-pub enum YiceError {
+pub enum ApiError {
     #[error("Authentication error: {0}")]
     Auth(String),
 
@@ -69,7 +69,7 @@ pub enum YiceError {
     },
 }
 
-impl YiceError {
+impl ApiError {
     /// 创建业务错误
     pub fn business(code: BusinessCode) -> Self {
         Self::Business {
@@ -133,7 +133,14 @@ impl YiceError {
 
     /// 获取HTTP状态码
     pub fn status_code(&self) -> axum::http::StatusCode {
-        crate::status::get_http_status(self.business_code())
+        get_http_status(self.business_code())
+    }
+}
+
+// 实现从YiceError到Response的转换
+impl IntoResponse for ApiError {
+    fn into_response(self) -> Response {
+        error_response(&self)
     }
 }
 

@@ -5,8 +5,7 @@ use axum::response::{IntoResponse, Json, Response};
 use serde::Serialize;
 use serde_json::Value;
 
-use crate::errors::YiceError;
-use crate::status::BusinessCode;
+use crate::errors::{ApiError, BusinessCode};
 
 /// API响应结构
 #[derive(Debug, Serialize)]
@@ -56,7 +55,7 @@ impl ApiResponse<Value> {
 }
 
 /// 从YiceError创建标准错误响应
-pub fn error_response(err: &YiceError) -> Response {
+pub fn error_response(err: &ApiError) -> Response {
     let code = err.business_code();
     let status = err.status_code();
     let message = err.to_string();
@@ -87,7 +86,7 @@ pub fn business_error_response(
     code: BusinessCode,
     message: Option<String>
 ) -> Response {
-    let status = crate::status::get_http_status(code);
+    let status = crate::errors::get_http_status(code);
 
     (
         status,
@@ -95,12 +94,6 @@ pub fn business_error_response(
     ).into_response()
 }
 
-// 实现从YiceError到Response的转换
-impl IntoResponse for YiceError {
-    fn into_response(self) -> Response {
-        error_response(&self)
-    }
-}
 
 impl<T> IntoResponse for ApiResponse<T>
 where T: Serialize {

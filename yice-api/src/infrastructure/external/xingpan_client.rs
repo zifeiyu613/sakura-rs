@@ -1,4 +1,3 @@
-use crate::errors::error::YiceError;
 use chrono::prelude::*;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -6,7 +5,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::error::Error;
 use std::ops::Add;
-use crate::status::BusinessCode;
+use crate::errors::{ApiError, BusinessCode};
 
 const URL: &str = "http://yong.xingpan.vip/corpus/";
 const ACCESS_TOKEN: &str = "53b9dd693d75d16525480ebe1036ea35";
@@ -31,7 +30,7 @@ pub struct XingpanResponse {
 async fn post(
     endpoint: &str,
     params: HashMap<&str, &str>,
-) -> Result<Option<String>, YiceError> {
+) -> Result<Option<String>, ApiError> {
     let url = format!("{}{}", URL, endpoint);
     let client = Client::new();
     let response = client.post(&url).form(&params).send().await?;
@@ -41,12 +40,12 @@ async fn post(
         let body = response.text().await?;
         Ok(Some(body))
     } else {
-        Err(YiceError::business_with_message(BusinessCode::ThirdPartyServiceError, format!("请求状态码异常: {:?}", response)))
+        Err(ApiError::business_with_message(BusinessCode::ThirdPartyServiceError, format!("请求状态码异常: {:?}", response)))
     }
 }
 
 /// 获取年运语料
-pub async fn luck_year(xingpan: &XingpanDTO) -> Result<XingpanResponse, YiceError> {
+pub async fn luck_year(xingpan: &XingpanDTO) -> Result<XingpanResponse, ApiError> {
     // 创建一个 HashMap 来存储表单数据
     let mut params = HashMap::new();
 
@@ -71,12 +70,12 @@ pub async fn luck_year(xingpan: &XingpanDTO) -> Result<XingpanResponse, YiceErro
 }
 
 /// 八字基础信息
-pub async fn get_eight_char(xingpan: &XingpanDTO) -> Result<XingpanResponse, YiceError> {
+pub async fn get_eight_char(xingpan: &XingpanDTO) -> Result<XingpanResponse, ApiError> {
     let path = "eightchar/get";
 
     // 解析生日字符串
     let date = NaiveDateTime::parse_from_str(&xingpan.birthday, "%Y-%m-%d %H:%M")
-        .map_err(|e| YiceError::DateParseError(e))?;
+        .map_err(|e| ApiError::DateParseError(e))?;
 
     // 准备请求参数
     let mut params = HashMap::new();
@@ -108,7 +107,7 @@ pub async fn get_eight_char(xingpan: &XingpanDTO) -> Result<XingpanResponse, Yic
     }
 }
 
-pub fn parse_data(res: Option<String>) -> Result<XingpanResponse, YiceError> {
+pub fn parse_data(res: Option<String>) -> Result<XingpanResponse, ApiError> {
     match res {
         None => Ok(XingpanResponse {
             code: 0,
@@ -116,7 +115,7 @@ pub fn parse_data(res: Option<String>) -> Result<XingpanResponse, YiceError> {
             data: Default::default(),
         }),
         Some(body) => Ok(serde_json::from_str::<XingpanResponse>(&body)
-            .map_err(YiceError::DataParseError)?),
+            .map_err(ApiError::DataParseError)?),
     }
 }
 

@@ -3,7 +3,7 @@ use std::path::Path;
 use config::{Environment, File};
 use serde::Deserialize;
 use tracing::info;
-use crate::errors::error::YiceError;
+use crate::errors::ApiError;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
@@ -22,12 +22,11 @@ pub struct DatabaseConfig {
 }
 
 impl Config {
-    pub async fn load() -> Result<Self, YiceError> {
+    pub async fn load() -> Result<Self, ApiError> {
 
         let config_path = dotenvy::var("CONFIG_PATH").unwrap_or_else(|_| "./yice-api/config/".to_string());
 
         info!("Loading configuration from {}", &config_path);
-        info!("Loading configuration from {}", Path::new(&config_path).parent().unwrap().display());
 
         let builder = config::Config::builder()
             .add_source(File::from(Path::new(&config_path).join("application.toml")))

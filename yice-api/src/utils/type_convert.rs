@@ -459,5 +459,10 @@ mod tests {
 
             println!("处理请求 - 用户ID: {:?}, 数量: {:?}", user_id_parsed, quantity_parsed);
         }
+
+        // 调用API处理函数
+        process_api_request(Some("1001"), Some("5"));
+        process_api_request(Some(""), None);
+        process_api_request(Some("invalid"), Some("10")); // 会失败
     }
 }

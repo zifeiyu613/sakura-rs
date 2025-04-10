@@ -9,10 +9,8 @@ mod config;
 mod middleware;
 mod domain;
 
-mod params;
 mod constants;
 
-mod status;
 
 mod errors;
 

@@ -8,8 +8,9 @@ use axum::{
 };
 use std::time::Instant;
 use tracing::{debug, info};
+use crate::errors::ApiError;
 
-pub async fn log_request(request: Request, next: Next) -> Result<Response, StatusCode> {
+pub async fn log_request(request: Request, next: Next) -> Result<Response, ApiError> {
     let start_time = Instant::now();
 
     // 提取请求信息
@@ -17,7 +18,6 @@ pub async fn log_request(request: Request, next: Next) -> Result<Response, Statu
     let uri = request.uri().clone();
     let version = request.version();
 
-    // 获取查询参数
     // 获取查询参数
     let query_params = uri.query().unwrap_or("").to_string();
 

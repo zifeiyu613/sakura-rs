@@ -3,7 +3,7 @@ use std::time::Duration;
 use sqlx::mysql::MySqlPoolOptions;
 use sqlx::MySqlPool;
 use crate::config::Config;
-use crate::errors::error::YiceError;
+use crate::errors::error::ApiError;
 
 #[derive(Clone, Debug)]
 pub struct DbManager {
@@ -12,7 +12,7 @@ pub struct DbManager {
 
 impl DbManager {
 
-    pub async fn new(config: &Config) -> Result<Self, YiceError> {
+    pub async fn new(config: &Config) -> Result<Self, ApiError> {
         let mut pools = HashMap::new();
 
         for (db_name, db_config) in &config.mysql {
@@ -38,9 +38,9 @@ impl DbManager {
         self.get("sm_phoenix")
     }
 
-    pub fn sakura_pay(&self) -> Result<&MySqlPool, YiceError> {
+    pub fn sakura_pay(&self) -> Result<&MySqlPool, ApiError> {
         let pool = self.get("sakura_pay");
-        pool.ok_or_else(|| YiceError::Internal("Unable to find sakura_pay database".to_string()))
+        pool.ok_or_else(|| ApiError::Internal("Unable to find sakura_pay database".to_string()))
     }
 
 }

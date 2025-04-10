@@ -1,4 +1,3 @@
-use crate::errors::error::YiceError;
 use base64::{Engine as _, engine::general_purpose};
 use chrono::Utc;
 use hmac::{Hmac, Mac};
@@ -6,7 +5,7 @@ use reqwest::Client;
 use sha1::Sha1;
 use std::collections::HashMap;
 use url::Url;
-use crate::status::BusinessCode;
+use crate::errors::{ApiError, BusinessCode};
 
 const BZ_URL: &str = "https://ap-guangzhou.cloudmarket-apigw.com/services-4mq5lolqo/bazi";
 
@@ -29,12 +28,12 @@ impl BaziClient {
         Utc::now().format("%a, %d %b %Y %H:%M:%S GMT").to_string()
     }
 
-    fn get_authorization(&self) -> Result<String, YiceError> {
+    fn get_authorization(&self) -> Result<String, ApiError> {
         let datetime = Self::get_datetime();
         let sign_str = format!("x-date: {}", datetime);
 
         let mut mac = Hmac::<Sha1>::new_from_slice(self.secret_key.as_bytes())
-            .map_err(|e| YiceError::business_with_message(BusinessCode::InvalidLength, e.to_string()))?;
+            .map_err(|e| ApiError::business_with_message(BusinessCode::InvalidLength, e.to_string()))?;
         mac.update(sign_str.as_bytes());
 
         let signature = general_purpose::STANDARD.encode(mac.finalize().into_bytes());
@@ -54,7 +53,7 @@ impl BaziClient {
         sex: &str,
         birthday: &str,
         year_type: i32,
-    ) -> Result<String, YiceError> {
+    ) -> Result<String, ApiError> {
         // 解析日期
         let date = chrono::NaiveDateTime::parse_from_str(birthday, "%Y-%m-%d %H:%M")?;
 
