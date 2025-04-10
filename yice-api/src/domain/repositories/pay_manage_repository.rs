@@ -14,18 +14,18 @@ impl<'a> PayManageRepository<'a> {
     // 基本查询
     pub async fn get_list(
         &self,
-        status: enums::State,
+        state: enums::State,
         package_name: &str,
         tenant_id: u8
     ) -> Result<Vec<PayManageList>, sqlx::Error> {
-        sqlx::query_as(r#"
+        sqlx::query_as::<_, PayManageList>(r#"
             SELECT * FROM t_app_pay_manage
             WHERE pay_status = ?
             AND package_name = ?
             AND tenant_id = ?
             ORDER BY sort ASC
             "#)
-            .bind(status)
+            .bind(i8::from(state))
             .bind(package_name)
             .bind(tenant_id)
             .fetch_all(self.pool).await

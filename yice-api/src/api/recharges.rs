@@ -10,7 +10,7 @@ use serde_json::{json, Value};
 use tracing::log::info;
 use url::Url;
 use crate::middleware::decryptor::RequestData;
-use crate::constants::{enums, DEFAULT_PACKAGE_NAME};
+use crate::constants::{State, DEFAULT_PACKAGE_NAME};
 use app_enumeta::app_macro::App;
 use crate::domain::repositories;
 use repositories::PayManageRepository;
@@ -46,10 +46,11 @@ async fn get_pay_manage_list(
             // 例如: let order_status = order_dto.status;
             info!("Got a request to get pay manage list, {:?}", order_dto);
 
+            info!("Using App Code: {:?}", App::YiCe.id());
             // 使用提取的公共方法
             let repository = PayManageRepository::new(pool);
             let mut result = match repository.get_list(
-                enums::State::Open,
+                State::Open,
                 &base_param.package_name(),
                 App::YiCe.id(),
             ).await {
@@ -63,7 +64,7 @@ async fn get_pay_manage_list(
             if result.is_empty() {
                 info!("No packages found");
                 result = repository.get_list(
-                    enums::State::Open,
+                    State::Open,
                     DEFAULT_PACKAGE_NAME,
                     App::YiCe.id(),
                 ).await?;
@@ -77,7 +78,7 @@ async fn get_pay_manage_list(
         }
         _ => {
             // 空请求 - 使用错误类型
-            return Err(YiceError::BadRequest("接收到空请求参数".to_string()));
+            Err(YiceError::BadRequest("接收到空请求参数".to_string()))
         }
     }
 }

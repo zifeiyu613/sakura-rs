@@ -8,36 +8,16 @@ use sqlx::{Decode, Encode, Type};
 #[sqlx(type_name = "TINYINT", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum State {
     /// 开启状态
-    Open,
+    Open = 1,
     /// 关闭状态
-    Closed,
+    Closed = 2,
     /// 待处理状态
-    Pending,
+    Pending = 3,
     /// 已删除状态
-    Deleted,
-}
-
-impl fmt::Display for State {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            State::Open => write!(f, "open"),
-            State::Closed => write!(f, "closed"),
-            State::Pending => write!(f, "pending"),
-            State::Deleted => write!(f, "deleted"),
-        }
-    }
+    Deleted = 4,
 }
 
 impl State {
-
-    pub fn code(&self) -> i32 {
-        match self {
-            State::Open => 1,
-            State::Closed => 2,
-            State::Pending => 3,
-            State::Deleted => 4,
-        }
-    }
 
     pub fn is_open(&self) -> bool {
         matches!(self, State::Open)
@@ -47,6 +27,14 @@ impl State {
     }
 
 }
+
+
+impl From<State> for i8 {
+    fn from(state: State) -> i8 {
+        state as i8
+    }
+}
+
 
 
 

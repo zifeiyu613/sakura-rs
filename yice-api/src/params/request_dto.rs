@@ -19,7 +19,10 @@ pub struct BaseRequestFields {
     device_code: Option<String>,
     #[serde(rename = "packageName")]
     package_name: Option<String>,
+
+    #[serde(rename = "packageVersion")]
     source: Option<u8>,
+
     #[serde(rename = "subChannel")]
     sub_channel: Option<String>,
 

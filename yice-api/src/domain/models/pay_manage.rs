@@ -1,14 +1,28 @@
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
+use crate::utils::datetime_format;
 
 #[derive(Serialize, Deserialize, Debug, Clone, FromRow)]
 pub struct PayManageList {
-    id: i64,
-    name: String,
+    pub id: i64,
+    pub name: String,
     #[serde(rename = "payLogo")]
-    pay_logo: Option<String>,
-    #[serde(rename = "paySubType")]
-    pay_sub_type: u8,
+    pub pay_logo: Option<String>,
+
     #[serde(rename = "payType")]
-    pay_type: u8,
+    pub pay_type: i8,
+
+    #[serde(rename = "paySubType")]
+    pub pay_sub_type: i16,
+
+    #[serde(rename = "packageName")]
+    pub package_name: Option<String>,
+
+    #[serde(rename = "extJson")]
+    ext_json: Option<String>,
+
+    #[serde(rename = "createTime", default, with = "datetime_format")]
+    create_time: NaiveDateTime,
+
 }
