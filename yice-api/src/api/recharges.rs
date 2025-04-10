@@ -47,21 +47,20 @@ async fn get_pay_manage_list(
             info!("order_dto: {:?}", order_dto);
 
             info!("Using App Code: {:?}", App::YiCe.id());
+            // 确定包名
+            let package_name = base_param.package_name.as_deref().unwrap_or(DEFAULT_PACKAGE_NAME);
+
             // 使用提取的公共方法
             let repository = PayManageRepository::new(pool);
-            let mut result = match repository.get_list(
+            let mut result = repository.get_list(
                 State::Open,
-                &base_param.package_name.as_deref().unwrap_or(DEFAULT_PACKAGE_NAME),
+                package_name,
                 App::YiCe.id(),
-            ).await {
-                Ok(list) => list,
-                Err(err) =>  {
-                    return Err(ApiError::from(err));
-                }
-            };
+            ).await?;
+
             info!("result:{:?}", result);
 
-            if result.is_empty() {
+            if result.is_empty() && package_name != DEFAULT_PACKAGE_NAME {
                 info!("No packages found");
                 result = repository.get_list(
                     State::Open,

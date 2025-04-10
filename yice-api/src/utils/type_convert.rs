@@ -5,7 +5,7 @@
 
 use std::fmt;
 use std::str::FromStr;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer};
 
 /// 从字符串或数字类型反序列化为目标类型
 ///

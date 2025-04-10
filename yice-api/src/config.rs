@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use config::{Environment, File};
 use serde::Deserialize;
 use tracing::info;
@@ -24,12 +24,14 @@ pub struct DatabaseConfig {
 impl Config {
     pub async fn load() -> Result<Self, ApiError> {
 
-        let config_path = dotenvy::var("CONFIG_PATH").unwrap_or_else(|_| "./yice-api/config/".to_string());
+        let config_path = dotenvy::var("CONFIG_PATH").unwrap_or_else(|_| {
+            format!("{}/application.toml", env!("CARGO_MANIFEST_DIR"))
+        });
 
         info!("Loading configuration from {}", &config_path);
 
         let builder = config::Config::builder()
-            .add_source(File::from(Path::new(&config_path).join("application.toml")))
+            .add_source(File::from(Path::new(&config_path)))
             .add_source(Environment::with_prefix("APP").separator("__"));
 
         let config = builder.build()?;
@@ -51,5 +53,12 @@ mod tests {
         println!("{:?}", config);
 
         assert_eq!(config.mysql.len(), 2);
+    }
+
+    #[test]
+    fn print_cargo_dir() {
+        let assets_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("config");
+
+        println!("{:?}", assets_dir.join("application.toml"));
     }
 }

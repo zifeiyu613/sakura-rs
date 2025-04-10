@@ -61,11 +61,11 @@ mod tests {
     use http_body_util::BodyExt;
     use tower::ServiceExt;
     use crate::config::Config;
-    use crate::errors::error::YiceError;
+    use crate::errors::error::ApiError;
     use crate::infrastructure::database::DbManager;
 
 
-    async fn init() -> Result<AppState, YiceError> {
+    async fn init() -> Result<AppState, ApiError> {
         // 加载配置
         let config = Config::load().await?;
 

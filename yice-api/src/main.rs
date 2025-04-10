@@ -1,3 +1,5 @@
+use axum::http::StatusCode;
+use axum::response::IntoResponse;
 use tracing::log::info;
 use tracing_subscriber::EnvFilter;
 use yice_api::server::create_app;
@@ -15,6 +17,8 @@ async fn main() {
         .init();
 
     let app = create_app().await.unwrap();
+    // 处理未定义Paths
+    let app= app.fallback(handler_404);
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
 
@@ -24,3 +28,7 @@ async fn main() {
 
 }
 
+
+async fn handler_404() -> impl IntoResponse {
+    (StatusCode::NOT_FOUND, "nothing to see here")
+}

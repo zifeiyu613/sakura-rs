@@ -1,7 +1,7 @@
 use crate::api::{home, landing_pages, recharges};
 use crate::config::Config;
 use crate::infrastructure::database::DbManager;
-use crate::middleware::{decryptor::decrypt, log_errors::log_errors};
+use crate::middleware::{decryptor::decrypt, logger::log_request};
 use axum::extract::State;
 use axum::response::IntoResponse;
 use axum::routing::get;
@@ -56,7 +56,7 @@ pub async fn create_app() -> Result<Router, ApiError> {
         .route("/test", get(handle_test).post(handle_test))
         .route("/test1", get(handle_test1).post(handle_test1))
         .nest_service("/yice", yice_routes)
-        .layer(middleware::from_fn(log_errors))
+        .layer(middleware::from_fn(log_request))
         .layer(middleware::from_fn(decrypt))
         .layer(Extension(shared_state.clone()))
         .with_state(shared_state);
