@@ -30,10 +30,7 @@ async fn get_pay_manage_list(
     Extension(state): Extension<Arc<AppState>>,
     api_request: ApiRequest<OrderDTO>,
 ) -> Result<ApiResponse<Value>, ApiError> {
-    debug!(
-        "Got a request to get pay manage list, with state: {:?}",
-        state
-    );
+
     let pool = state.db_manager.sakura_pay()?;
 
     match (api_request.base, api_request.nested) {

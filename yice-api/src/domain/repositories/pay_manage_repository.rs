@@ -182,7 +182,7 @@ impl<'a> AppPayQueryBuilder<'a> {
 
         // 构建SQL和执行
         let (sql, values) = query.build_sqlx(MysqlQueryBuilder);
-        debug!("执行SQL: {}, values", sql);
+        debug!("执行SQL: {}, values:{:?}", sql, values.to_owned());
 
         // 执行查询
         sqlx::query_as_with::<_, AppPayManageRecord, _>(&sql, values)
