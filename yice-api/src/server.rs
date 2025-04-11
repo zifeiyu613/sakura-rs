@@ -1,4 +1,4 @@
-use crate::api::{home, landing_pages, recharges};
+use crate::api::{home, landing_pages, pay_manage_handler};
 use crate::config::Config;
 use crate::infrastructure::database::DbManager;
 use crate::middleware::{decryptor::decrypt, logger::log_request};
@@ -49,7 +49,7 @@ pub async fn create_app() -> Result<Router, ApiError> {
     let yice_routes = Router::new()
         .nest("/home", home::routes(shared_state.clone()))
         .nest("/web", landing_pages::routes())
-        .nest("/recharge", recharges::routes());
+        .nest("/recharge", pay_manage_handler::routes());
 
     let router = Router::new()
         .route("/", get(|| async { "<h1>Hello, World!</h1>" }))

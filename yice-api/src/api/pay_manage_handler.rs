@@ -4,6 +4,7 @@ use axum::{Extension, Json, Router};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use std::sync::Arc;
+use std::time::Instant;
 use axum::response::IntoResponse;
 use serde_json::{json, Value};
 use tracing::log::{debug, info};
@@ -13,6 +14,7 @@ use app_enumeta::app_macro::App;
 use crate::domain::repositories;
 use repositories::PayManageRepository;
 use crate::domain::dtos::OrderDTO;
+use crate::domain::models::pay_manage::AppPayManageRecord;
 use crate::errors::ApiError;
 use crate::errors::response::ApiResponse;
 use crate::middleware::extract::ApiRequest;
@@ -32,10 +34,7 @@ async fn get_pay_manage_list(
         "Got a request to get pay manage list, with state: {:?}",
         state
     );
-    let pool = match state.db_manager.sakura_pay() {
-        Ok(pool) => pool,
-        Err(err) => return Err(err)
-    };
+    let pool = state.db_manager.sakura_pay()?;
 
     match (api_request.base, api_request.nested) {
         (Some(base_param), Some(order_dto)) => {
@@ -52,23 +51,28 @@ async fn get_pay_manage_list(
 
             // 使用提取的公共方法
             let repository = PayManageRepository::new(pool);
-            let mut result = repository.get_list(
-                State::Open,
-                package_name,
-                App::YiCe.id(),
+            let mut result = repository.get_list_flexible(
+                Some(App::YiCe.id()),
+                Some(&[package_name, DEFAULT_PACKAGE_NAME]),
+                Some(State::Open)
             ).await?;
 
-            info!("result:{:?}", result);
+            info!("查询到 {} 条记录", result.len());
 
-            if result.is_empty() && package_name != DEFAULT_PACKAGE_NAME {
-                info!("No packages found");
-                result = repository.get_list(
-                    State::Open,
-                    DEFAULT_PACKAGE_NAME,
-                    App::YiCe.id(),
-                ).await?;
-            }
 
+            // 先过滤出指定包名的记录
+            let filtered: Vec<_> = result.iter()
+                .filter(|item| item.package_name.as_deref().map_or(false, |name| name == package_name))
+                .collect();
+
+            // 如果过滤后有记录就用过滤后的，否则重新查询所有
+            let result = if !filtered.is_empty() {
+                info!("使用特定包名 '{}' 筛选出 {} 条记录", package_name, filtered.len());
+                filtered
+            } else {
+                info!("特定包名 '{}' 没有匹配记录，使用默认包名查询", package_name);
+                result.iter().collect()
+            };
             // 返回结果，这里可以返回 result 而不是原始参数
             Ok(ApiResponse::success(json!({
                 "list": result,
@@ -91,3 +95,51 @@ impl Recharges {
         Self { path: path.into() }
     }
 }
+
+async fn benchmark_query_strategies(
+    Extension(state): Extension<Arc<AppState>>,
+    package_name: &str,
+    iterations: usize
+) {
+    let pool = state.db_manager.sakura_pay().unwrap();
+
+    let repository = PayManageRepository::new(pool);
+
+    // 方案一: IN查询+内存过滤
+    let start = Instant::now();
+    for _ in 0..iterations {
+        let mut result = repository.get_list_flexible(
+            Some(App::YiCe.id()),
+            Some(&[package_name, DEFAULT_PACKAGE_NAME]),
+            Some(State::Open)
+        ).await.unwrap();
+
+        let filtered = result.into_iter()
+            .filter(|item| item.package_name.as_deref().map_or(false, |name| name == package_name))
+            .collect::<Vec<_>>();
+    }
+    let strategy1_time = start.elapsed();
+
+    // 方案二: 两次独立查询
+    let start = Instant::now();
+    for _ in 0..iterations {
+        let primary = repository.get_list_flexible(
+            Some(App::YiCe.id()),
+            Some(&[package_name]),
+            Some(State::Open)
+        ).await.unwrap();
+
+        if primary.is_empty() {
+            let default = repository.get_list_flexible(
+                Some(App::YiCe.id()),
+                Some(&[DEFAULT_PACKAGE_NAME]),
+                Some(State::Open)
+            ).await.unwrap();
+        }
+    }
+    let strategy2_time = start.elapsed();
+
+    info!("IN查询+内存过滤: {:?}", strategy1_time);
+    info!("两次独立查询: {:?}", strategy2_time);
+}
+

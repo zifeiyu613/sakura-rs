@@ -11,11 +11,11 @@ use crate::impl_nested_field;
 pub struct OrderDTO {
 
     /// 支付类型
-    #[serde(rename = "payType", deserialize_with = "string_or_number_option")]
+    #[serde(rename = "payType", deserialize_with = "string_or_number_option", default)]
     pub pay_type: Option<u16>,
 
     /// 支付子类型
-    #[serde(rename = "paySubType", deserialize_with = "string_or_number_option")]
+    #[serde(rename = "paySubType", deserialize_with = "string_or_number_option", default)]
     pub pay_subtype: Option<u16>,
 
     // 其他可能的字段，全部设为可选
