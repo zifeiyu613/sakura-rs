@@ -64,13 +64,17 @@ impl RedisCounter {
 
 #[async_trait::async_trait]
 impl CounterOps for RedisCounter {
+
     async fn incr(&self, key: &str) -> Result<i64> {
         let full_key = self.get_key(key);
         let mut conn = self.connection_manager.clone();
 
-        let result = conn.incr(&full_key, 1).await?;
+        let result: i64 = redis::cmd("INCR")
+            .arg(&full_key)
+            .query_async(&mut conn)
+            .await?;
 
-        debug!("INCR {} -> {}", full_key, result);
+        debug!("INCR {} -> {}", &full_key, result);
         Ok(result)
     }
 
@@ -78,7 +82,11 @@ impl CounterOps for RedisCounter {
         let full_key = self.get_key(key);
         let mut conn = self.connection_manager.clone();
 
-        let result = conn.incr(&full_key, increment).await?;
+        let result: i64 = redis::cmd("INCRBY")
+            .arg(&full_key)
+            .arg(increment)
+            .query_async(&mut conn)
+            .await?;
 
         debug!("INCRBY {} {} -> {}", full_key, increment, result);
         Ok(result)
@@ -112,11 +120,11 @@ impl CounterOps for RedisCounter {
 
         match result {
             Some(value) => {
-                debug!("GET {} -> {}", full_key, value);
+                debug!("GET {} -> {}", &full_key, value);
                 Ok(value)
             }
             None => {
-                debug!("GET {} -> 0 (not found)", full_key);
+                debug!("GET {} -> 0 (not found)", &full_key);
                 Ok(0)
             }
         }

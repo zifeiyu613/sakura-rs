@@ -1,20 +1,18 @@
 /// 哈希表操作
-use super::error::{RedisError, Result};
-use super::serializer::{JsonSerializer, RedisSerializer};
-use redis::{aio::ConnectionManager, AsyncCommands};
+use super::error::Result;
+use redis::aio::ConnectionManager;
 use serde::{de::DeserializeOwned, Serialize};
 use std::collections::HashMap;
-use std::sync::Arc;
-use tracing::debug;
+
 
 /// 哈希表操作接口
 #[async_trait::async_trait]
 pub trait HashOps: Send + Sync {
-    /// 设置哈希表字段
-    async fn hset<T: Serialize + Send + Sync>(&self, key: &str, field: &str, value: &T) -> Result<bool>;
+    /// 设置哈希表字段原始字节
+    async fn hset_raw(&self, key: &str, field: &str, value: Vec<u8>) -> Result<bool>;
 
-    /// 获取哈希表字段
-    async fn hget<T: DeserializeOwned + Send>(&self, key: &str, field: &str) -> Result<Option<T>>;
+    /// 获取哈希表字段原始字节
+    async fn hget_raw(&self, key: &str, field: &str) -> Result<Option<Vec<u8>>>;
 
     /// 删除哈希表字段
     async fn hdel(&self, key: &str, field: &str) -> Result<bool>;
@@ -22,14 +20,14 @@ pub trait HashOps: Send + Sync {
     /// 检查哈希表字段是否存在
     async fn hexists(&self, key: &str, field: &str) -> Result<bool>;
 
-    /// 获取哈希表所有字段
-    async fn hgetall<T: DeserializeOwned + Send>(&self, key: &str) -> Result<HashMap<String, T>>;
+    /// 获取哈希表所有字段原始字节
+    async fn hgetall_raw(&self, key: &str) -> Result<HashMap<String, Vec<u8>>>;
 
-    /// 获取哈希表指定字段
-    async fn hmget<T: DeserializeOwned + Send>(&self, key: &str, fields: &[&str]) -> Result<Vec<Option<T>>>;
+    /// 获取哈希表指定字段原始字节
+    async fn hmget_raw(&self, key: &str, fields: &[&str]) -> Result<Vec<Option<Vec<u8>>>>;
 
-    /// 设置多个哈希表字段
-    async fn hmset<T: Serialize + Send + Sync>(&self, key: &str, map: &HashMap<String, T>) -> Result<()>;
+    /// 设置多个哈希表字段原始字节
+    async fn hmset_raw(&self, key: &str, map: HashMap<String, Vec<u8>>) -> Result<()>;
 
     /// 获取哈希表字段数量
     async fn hlen(&self, key: &str) -> Result<i64>;
@@ -41,11 +39,79 @@ pub trait HashOps: Send + Sync {
     async fn hincrby(&self, key: &str, field: &str, increment: i64) -> Result<i64>;
 }
 
+/// 扩展哈希操作接口 - 提供泛型方法
+#[async_trait::async_trait]
+pub trait HashOpsExt: HashOps {
+    /// 设置哈希表字段
+    async fn hset<T: Serialize + Send + Sync>(&self, key: &str, field: &str, value: &T) -> Result<bool> {
+        let serialized = serde_json::to_vec(value)?;
+        self.hset_raw(key, field, serialized).await
+    }
+
+    /// 获取哈希表字段
+    async fn hget<T: DeserializeOwned + Send>(&self, key: &str, field: &str) -> Result<Option<T>> {
+        match self.hget_raw(key, field).await? {
+            Some(data) => {
+                let value = serde_json::from_slice(&data)?;
+                Ok(Some(value))
+            }
+            None => Ok(None),
+        }
+    }
+
+    /// 获取哈希表所有字段
+    async fn hgetall<T: DeserializeOwned + Send>(&self, key: &str) -> Result<HashMap<String, T>> {
+        let raw_map = self.hgetall_raw(key).await?;
+        let mut result = HashMap::with_capacity(raw_map.len());
+
+        for (field, data) in raw_map {
+            let value: T = serde_json::from_slice(&data)?;
+            result.insert(field, value);
+        }
+
+        Ok(result)
+    }
+
+    /// 获取哈希表指定字段
+    async fn hmget<T: DeserializeOwned + Send>(&self, key: &str, fields: &[&str]) -> Result<Vec<Option<T>>> {
+        let raw_values = self.hmget_raw(key, fields).await?;
+        let mut result = Vec::with_capacity(raw_values.len());
+
+        for maybe_data in raw_values {
+            let maybe_value = match maybe_data {
+                Some(data) => {
+                    let value: T = serde_json::from_slice(&data)?;
+                    Some(value)
+                }
+                None => None,
+            };
+            result.push(maybe_value);
+        }
+
+        Ok(result)
+    }
+
+    /// 设置多个哈希表字段
+    async fn hmset<T: Serialize + Send + Sync>(&self, key: &str, map: &HashMap<String, T>) -> Result<()> {
+        let mut raw_map = HashMap::with_capacity(map.len());
+
+        for (field, value) in map {
+            let serialized = serde_json::to_vec(value)?;
+            raw_map.insert(field.clone(), serialized);
+        }
+
+        self.hmset_raw(key, raw_map).await
+    }
+}
+
+// 为所有 HashOps 实现者自动提供 HashOpsExt 功能
+impl<T: HashOps + ?Sized> HashOpsExt for T {}
+
+
 /// Redis哈希表操作实现
 #[derive(Clone)]
 pub struct RedisHash {
     connection_manager: ConnectionManager,
-    serializer: JsonSerializer,
     prefix: String,
 }
 
@@ -54,7 +120,6 @@ impl RedisHash {
     pub fn new(connection_manager: ConnectionManager) -> Self {
         Self {
             connection_manager,
-            serializer: JsonSerializer,
             prefix: "hash:".to_string(),
         }
     }
@@ -75,135 +140,114 @@ impl RedisHash {
 #[async_trait::async_trait]
 impl HashOps for RedisHash {
 
-    async fn hset<T: Serialize + Send + Sync>(&self, key: &str, field: &str, value: &T) -> Result<bool> {
+    async fn hset_raw(&self, key: &str, field: &str, value: Vec<u8>) -> Result<bool> {
         let full_key = self.get_key(key);
-        let serialized = self.serializer.serialize(value)?;
-
         let mut conn = self.connection_manager.clone();
-        let result: i32 = conn.hset(&full_key, field, serialized).await?;
-
-        debug!("HSET {} {} -> {}", full_key, field, result);
-        Ok(result == 1)
+        let result: i32 = redis::cmd("HSET")
+            .arg(full_key)
+            .arg(field)
+            .arg(value)
+            .query_async(&mut conn)
+            .await?;
+        Ok(result > 0)
     }
 
-    async fn hget<T: DeserializeOwned + Send>(&self, key: &str, field: &str) -> Result<Option<T>> {
+    async fn hget_raw(&self, key: &str, field: &str) -> Result<Option<Vec<u8>>> {
         let full_key = self.get_key(key);
         let mut conn = self.connection_manager.clone();
-
-        let result: Option<String> = conn.hget(&full_key, field).await?;
-
-        match result {
-            Some(data) => {
-                debug!("HGET {} {} -> data", full_key, field);
-                let value = self.serializer.deserialize(&data)?;
-                Ok(Some(value))
-            }
-            None => {
-                debug!("HGET {} {} -> None", full_key, field);
-                Ok(None)
-            }
-        }
+        let result = redis::cmd("HGET")
+            .arg(full_key)
+            .arg(field)
+            .query_async(&mut conn)
+            .await?;
+        Ok(result)
     }
 
     async fn hdel(&self, key: &str, field: &str) -> Result<bool> {
         let full_key = self.get_key(key);
         let mut conn = self.connection_manager.clone();
-
-        let result: i32 = conn.hdel(&full_key, field).await?;
-
-        debug!("HDEL {} {} -> {}", full_key, field, result);
-        Ok(result == 1)
+        let result: i32 = redis::cmd("HDEL")
+            .arg(full_key)
+            .arg(field)
+            .query_async(&mut conn)
+            .await?;
+        Ok(result > 0)
     }
 
     async fn hexists(&self, key: &str, field: &str) -> Result<bool> {
         let full_key = self.get_key(key);
         let mut conn = self.connection_manager.clone();
+        let result: i32 = redis::cmd("HEXISTS")
+            .arg(full_key)
+            .arg(field)
+            .query_async(&mut conn)
+            .await?;
+        Ok(result > 0)
+    }
 
-        let result = conn.hexists(&full_key, field).await?;
-
-        debug!("HEXISTS {} {} -> {}", full_key, field, result);
+    async fn hgetall_raw(&self, key: &str) -> Result<HashMap<String, Vec<u8>>> {
+        let full_key = self.get_key(key);
+        let mut conn = self.connection_manager.clone();
+        let result = redis::cmd("HGETALL")
+            .arg(full_key)
+            .query_async(&mut conn)
+            .await?;
         Ok(result)
     }
 
-    async fn hgetall<T: DeserializeOwned + Send>(&self, key: &str) -> Result<HashMap<String, T>> {
+    async fn hmget_raw(&self, key: &str, fields: &[&str]) -> Result<Vec<Option<Vec<u8>>>> {
         let full_key = self.get_key(key);
         let mut conn = self.connection_manager.clone();
-
-        let result: HashMap<String, String> = conn.hgetall(&full_key).await?;
-        let mut map = HashMap::with_capacity(result.len());
-
-        for (field, data) in result {
-            map.insert(field.clone(), self.serializer.deserialize(&data)?);
+        let mut cmd = redis::cmd("HMGET");
+        cmd.arg(full_key);
+        for field in fields {
+            cmd.arg(*field);
         }
-
-        debug!("HGETALL {} -> {} fields", full_key, map.len());
-        Ok(map)
+        let result = cmd.query_async(&mut conn).await?;
+        Ok(result)
     }
 
-    async fn hmget<T: DeserializeOwned + Send>(&self, key: &str, fields: &[&str]) -> Result<Vec<Option<T>>> {
+    async fn hmset_raw(&self, key: &str, map: HashMap<String, Vec<u8>>) -> Result<()> {
         let full_key = self.get_key(key);
         let mut conn = self.connection_manager.clone();
-
-        let result: Vec<Option<String>> = conn.hget(&full_key, fields).await?;
-        let mut values = Vec::with_capacity(result.len());
-
-        for item in result {
-            match item {
-                Some(data) => values.push(Some(self.serializer.deserialize(&data)?)),
-                None => values.push(None),
-            }
-        }
-
-        debug!("HMGET {} ({} fields) -> {} results", full_key, fields.len(), values.len());
-        Ok(values)
-    }
-
-    async fn hmset<T: Serialize + Send + Sync>(&self, key: &str, map: &HashMap<String, T>) -> Result<()> {
-        if map.is_empty() {
-            return Ok(());
-        }
-
-        let full_key = self.get_key(key);
-        let mut serialized_map = Vec::with_capacity(map.len());
-
+        let mut cmd = redis::cmd("HMSET");
+        cmd.arg(full_key);
         for (field, value) in map {
-            serialized_map.push((field.clone(), self.serializer.serialize(value)?));
+            cmd.arg(field).arg(value);
         }
-
-        let mut conn = self.connection_manager.clone();
-        let _: () = conn.hset_multiple(&full_key, &serialized_map).await?;
-
-        debug!("HMSET {} ({} fields)", full_key, map.len());
+        let _:() = cmd.query_async(&mut conn).await?;
         Ok(())
     }
 
     async fn hlen(&self, key: &str) -> Result<i64> {
         let full_key = self.get_key(key);
         let mut conn = self.connection_manager.clone();
-
-        let result = conn.hlen(&full_key).await?;
-
-        debug!("HLEN {} -> {}", full_key, result);
+        let result = redis::cmd("HLEN")
+            .arg(full_key)
+            .query_async(&mut conn)
+            .await?;
         Ok(result)
     }
 
     async fn hkeys(&self, key: &str) -> Result<Vec<String>> {
         let full_key = self.get_key(key);
         let mut conn = self.connection_manager.clone();
-
-        let result = conn.hkeys(&full_key).await?;
-
-        // debug!("HKEYS {} -> {} keys", full_key, result.len());
+        let result = redis::cmd("HKEYS")
+            .arg(full_key)
+            .query_async(&mut conn)
+            .await?;
         Ok(result)
     }
 
     async fn hincrby(&self, key: &str, field: &str, increment: i64) -> Result<i64> {
         let full_key = self.get_key(key);
         let mut conn = self.connection_manager.clone();
-
-        let result = conn.hincr(&full_key, field, increment).await?;
-
-        debug!("HINCRBY {} {} {} -> {}", full_key, field, increment, result);
+        let result = redis::cmd("HINCRBY")
+            .arg(full_key)
+            .arg(field)
+            .arg(increment)
+            .query_async(&mut conn)
+            .await?;
         Ok(result)
     }
 }

@@ -7,12 +7,12 @@ use std::time::Duration;
 pub struct RedisManager {
     connection: ConnectionManager,
     client: RedisClient,
-    pub cache: Arc<dyn Cache>,
-    pub lock: Arc<dyn DistributedLock>,
-    pub list: Arc<dyn ListOps>,
-    pub hash: Arc<dyn HashOps>,
-    pub counter: Arc<dyn CounterOps>,
-    pub sorted_set: Arc<dyn SortedSetOps>,
+    pub cache: Arc<dyn Cache + Send + Sync>,
+    pub lock: Arc<dyn DistributedLock + Send + Sync>,
+    pub list: Arc<dyn ListOps + Send + Sync>,
+    pub hash: Arc<dyn HashOps + Send + Sync>,
+    pub counter: Arc<dyn CounterOps + Send + Sync>,
+    pub sorted_set: Arc<dyn SortedSetOps + Send + Sync>,
 }
 
 impl RedisManager {
@@ -51,7 +51,7 @@ impl RedisManager {
 
         let lock = RedisLock::new(connection.clone()).with_prefix(&format!("{}lock:", prefix));
 
-        let list = RedisList::new(connection.clone(), JsonSerializer)
+        let list = RedisList::new(connection.clone())
             .with_prefix(&format!("{}list:", prefix));
 
         let hash = RedisHash::new(connection.clone()).with_prefix(&format!("{}hash:", prefix));

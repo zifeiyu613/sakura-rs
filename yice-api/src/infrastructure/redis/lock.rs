@@ -4,23 +4,6 @@ use std::time::Duration;
 use tracing::{debug, error, warn};
 use uuid::Uuid;
 
-/// 分布式锁接口
-#[async_trait::async_trait]
-pub trait DistributedLock: Send + Sync {
-    /// 尝试获取锁
-    async fn acquire(&self, key: &str, ttl: Duration) -> Result<LockGuard>;
-
-    /// 释放锁
-    async fn release(&self, guard: LockGuard) -> Result<bool>;
-
-    /// 使用锁执行操作
-    async fn with_lock<F, Fut, T, E>(&self, key: &str, ttl: Duration, f: F) -> std::result::Result<T, E>
-    where
-        F: FnOnce() -> Fut + Send + 'static,
-        Fut: Future<Output = std::result::Result<T, E>> + Send + 'static,
-        T: Send + 'static,
-        E: From<RedisError> + Send + 'static;
-}
 
 /// 锁定保护
 #[derive(Debug, Clone)]
@@ -28,6 +11,49 @@ pub struct LockGuard {
     pub key: String,
     pub value: String,
 }
+
+/// 分布式锁基础接口（对象安全版本）
+#[async_trait::async_trait]
+pub trait DistributedLock: Send + Sync {
+    /// 尝试获取锁
+    async fn acquire(&self, key: &str, ttl: Duration) -> Result<LockGuard>;
+
+    /// 释放锁
+    async fn release(&self, guard: LockGuard) -> Result<bool>;
+}
+
+
+/// 分布式锁扩展接口（包含泛型方法）
+#[async_trait::async_trait]
+pub trait DistributedLockExt: DistributedLock {
+    /// 使用锁执行操作
+    async fn with_lock<F, Fut, T, E>(&self, key: &str, ttl: Duration, f: F) -> std::result::Result<T, E>
+    where
+        F: FnOnce() -> Fut + Send + 'static,
+        Fut: Future<Output = std::result::Result<T, E>> + Send + 'static,
+        T: Send + 'static,
+        E: From<RedisError> + Send + 'static,
+    {
+        // 获取锁
+        let guard = self.acquire(key, ttl).await.map_err(E::from)?;
+
+        // 执行临界区代码
+        let result = f().await;
+
+        // 释放锁（即使操作失败也尝试释放）
+        if let Err(e) = self.release(guard).await {
+            warn!("释放锁时发生错误: {}", e);
+        }
+
+        result
+    }
+}
+
+
+// 自动为所有DistributedLock实现者提供DistributedLockExt功能
+impl<T: DistributedLock + ?Sized> DistributedLockExt for T {}
+
+
 
 /// Redis分布式锁实现
 #[derive(Clone)]
@@ -116,24 +142,4 @@ impl DistributedLock for RedisLock {
         Ok(success)
     }
 
-    async fn with_lock<F, Fut, T, E>(&self, key: &str, ttl: Duration, f: F) -> std::result::Result<T, E>
-    where
-        F: FnOnce() -> Fut + Send + 'static,
-        Fut: Future<Output = std::result::Result<T, E>> + Send + 'static,
-        T: Send + 'static,
-        E: From<RedisError> + Send + 'static,
-    {
-        // 获取锁
-        let guard = self.acquire(key, ttl).await.map_err(E::from)?;
-
-        // 执行临界区代码
-        let result = f().await;
-
-        // 释放锁（即使操作失败也尝试释放）
-        if let Err(e) = self.release(guard).await {
-            warn!("释放锁时发生错误: {}", e);
-        }
-
-        result
-    }
 }

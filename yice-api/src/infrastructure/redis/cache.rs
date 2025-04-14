@@ -10,16 +10,12 @@ use tracing::{debug, error, info, warn};
 /// 通用缓存接口
 #[async_trait::async_trait]
 pub trait Cache: Send + Sync {
-    /// 从缓存获取值
-    async fn get<T: DeserializeOwned + Send + 'static>(&self, key: &str) -> Result<Option<T>>;
 
-    /// 设置缓存值
-    async fn set<T: Serialize + Send + Sync + 'static>(
-        &self,
-        key: &str,
-        value: &T,
-        ttl: Option<Duration>,
-    ) -> Result<()>;
+    /// 从缓存获取原始值
+    async fn get_raw(&self, key: &str) -> Result<Option<Vec<u8>>>;
+
+    /// 设置缓存原始值
+    async fn set_raw(&self, key: &str, value: Vec<u8>, ttl: Option<Duration>) -> Result<()>;
 
     /// 根据键删除缓存
     async fn delete(&self, key: &str) -> Result<bool>;
@@ -30,13 +26,54 @@ pub trait Cache: Send + Sync {
     /// 使用模式删除多个键
     async fn delete_by_pattern(&self, pattern: &str) -> Result<u64>;
 
+}
+
+/// 添加默认实现的扩展trait
+#[async_trait::async_trait]
+pub trait CacheExt: Cache {
+
+    /// 从缓存获取并反序列化值
+    async fn get<T: DeserializeOwned + Send + 'static>(&self, key: &str) -> Result<Option<T>> {
+        match self.get_raw(key).await? {
+            Some(data) => {
+                let value: T = serde_json::from_slice(&data)?;
+                Ok(Some(value))
+            }
+            None => Ok(None),
+        }
+    }
+
+    /// 序列化并设置缓存值
+    async fn set<T: Serialize + Send + Sync + 'static>(
+        &self,
+        key: &str,
+        value: &T,
+        ttl: Option<Duration>,
+    ) -> Result<()> {
+        let serialized = serde_json::to_vec(value)?;
+        self.set_raw(key, serialized, ttl).await
+    }
+
     /// 获取或计算缓存值
     async fn get_or_set<T, F, Fut>(&self, key: &str, ttl: Option<Duration>, f: F) -> Result<T>
     where
         T: DeserializeOwned + Serialize + Send + Sync + 'static,
         F: FnOnce() -> Fut + Send + 'static,
-        Fut: Future<Output = Result<T>> + Send;
+        Fut: Future<Output = Result<T>> + Send,
+    {
+        if let Some(value) = self.get::<T>(key).await? {
+            return Ok(value);
+        }
+
+        let value = f().await?;
+        self.set(key, &value, ttl).await?;
+        Ok(value)
+    }
+
 }
+
+// 自动为所有Cache实现者添加CacheExt功能
+impl<T: Cache + ?Sized> CacheExt for T {}
 
 /// Redis缓存实现
 #[derive(Clone)]
@@ -82,71 +119,50 @@ impl CacheBuilder {
 
 #[async_trait::async_trait]
 impl Cache for RedisCache {
-    async fn get<T: DeserializeOwned + Send + 'static>(&self, key: &str) -> Result<Option<T>> {
+
+    async fn get_raw(&self, key: &str) -> Result<Option<Vec<u8>>> {
         let prefixed_key = format!("{}{}", self.prefix, key);
-
         let mut conn = self.connection_manager.clone();
-        let result: Option<String> = conn.get(&prefixed_key).await?;
-
-        match result {
-            Some(data) => {
-                debug!("Cache hit: {}", prefixed_key);
-                let value = self.serializer.deserialize(&data)?;
-                Ok(Some(value))
-            }
-            None => {
-                debug!("Cache miss: {}", prefixed_key);
-                Ok(None)
-            }
-        }
+        let result: Option<Vec<u8>> = redis::cmd("GET").arg(prefixed_key).query_async(&mut conn).await?;
+        Ok(result)
     }
 
-    async fn set<T: Serialize + Send + Sync + 'static>(
-        &self,
-        key: &str,
-        value: &T,
-        ttl: Option<Duration>,
-    ) -> Result<()> {
+
+
+    async fn set_raw(&self, key: &str, value: Vec<u8>, ttl: Option<Duration>) -> Result<()> {
         let prefixed_key = format!("{}{}", self.prefix, key);
-        let serialized = self.serializer.serialize(value)?;
-
         let mut conn = self.connection_manager.clone();
-
         match ttl {
-            Some(duration) => {
-                let _: () = conn.set_ex(&prefixed_key, serialized, duration.as_secs())
-                    .await?;
-                debug!("Set cache with TTL: {} ({:?})", prefixed_key, duration);
+            Some(ttl) => {
+                let _:() = redis::cmd("SETEX")
+                        .arg(prefixed_key)
+                        .arg(ttl.as_secs())
+                        .arg(value)
+                        .query_async(&mut conn)
+                        .await?;
             }
             None => {
-                let _: () = conn.set(&prefixed_key, serialized).await?;
-                debug!("Set cache without TTL: {}", prefixed_key);
+                let _:() = redis::cmd("SET").arg(key).arg(value).query_async(&mut conn).await?;
             }
-        }
-
+        };
         Ok(())
     }
 
     async fn delete(&self, key: &str) -> Result<bool> {
         let prefixed_key = format!("{}{}", self.prefix, key);
         let mut conn = self.connection_manager.clone();
-
-        let result: i64 = conn.del(&prefixed_key).await?;
-
-        if result > 0 {
-            debug!("Deleted cache key: {}", prefixed_key);
-        }
-
-        Ok(result > 0)
+        let count: i32 = redis::cmd("DEL").arg(prefixed_key).query_async(&mut conn).await?;
+        Ok(count > 0)
     }
+
+
 
     async fn exists(&self, key: &str) -> Result<bool> {
         let prefixed_key = format!("{}{}", self.prefix, key);
         let mut conn = self.connection_manager.clone();
 
-        let result: bool = conn.exists(&prefixed_key).await?;
-
-        Ok(result)
+        let exists: i32 = redis::cmd("EXISTS").arg(prefixed_key).query_async(&mut conn).await?;
+        Ok(exists > 0)
     }
 
     async fn delete_by_pattern(&self, pattern: &str) -> Result<u64> {
@@ -173,28 +189,8 @@ impl Cache for RedisCache {
         debug!("Deleted {} keys with pattern: {}", count, prefixed_pattern);
 
         Ok(count)
+
+
     }
 
-    async fn get_or_set<T, F, Fut>(&self, key: &str, ttl: Option<Duration>, f: F) -> Result<T>
-    where
-        T: DeserializeOwned + Serialize + Send + Sync + 'static,
-        F: FnOnce() -> Fut + Send + 'static,
-        Fut: Future<Output = Result<T>> + Send,
-    {
-        // 先尝试从缓存获取
-        if let Some(value) = self.get::<T>(key).await? {
-            return Ok(value);
-        }
-
-        // 缓存未命中，执行函数计算值
-        let value = f().await?;
-
-        // 缓存计算结果
-        if let Err(e) = self.set(key, &value, ttl).await {
-            warn!("Failed to cache value for key {}: {}", key, e);
-            // 不要因为缓存失败而阻止返回结果
-        }
-
-        Ok(value)
-    }
 }
