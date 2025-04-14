@@ -10,7 +10,11 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use std::sync::Arc;
+use std::time::Duration;
+use redis::aio::ConnectionManager;
 use crate::errors::ApiError;
+use crate::infrastructure::redis::client::RedisClient;
+use crate::infrastructure::redis::lock::RedisLock;
 
 #[derive(Clone, Debug)]
 pub struct AppState {
@@ -26,6 +30,12 @@ pub async fn create_app() -> Result<Router, ApiError> {
 
     // 初始化数据库连接
     let db_manager = DbManager::new(&config).await?;
+
+    let redis_connect = init_redis(&config).await
+        .map_err(|e| ApiError::Internal(e.to_string()))?;
+
+    let redis_lock = RedisLock::new(redis_connect.clone())
+        .with_prefix("app:v1:lock:");
 
     // 初始化其他服务...
     // let redis = init_redis(&config).await?;
@@ -63,6 +73,23 @@ pub async fn create_app() -> Result<Router, ApiError> {
 
     Ok(router)
 }
+
+
+async fn init_redis(config: &Config) -> crate::infrastructure::redis::error::Result<ConnectionManager> {
+    // 创建Redis客户端
+    let redis_client = RedisClient::builder(&config.redis.uri)
+        .connection_timeout(Duration::from_secs(3))
+        .build()?;
+
+    // 测试Redis连接
+    redis_client.ping().await?;
+
+    // 获取连接管理器
+    let connection = redis_client.get_connection_manager().await?;
+
+    Ok(connection)
+}
+
 
 
 #[derive(Serialize, Deserialize, Debug, Clone, FromRow)]

@@ -54,10 +54,8 @@ pub struct BaseRequestFields {
     pub version: String,
     #[serde(deserialize_with = "string_or_number_option", default)]
     pub source: Option<u8>,
-    pub device: Option<String>,
     #[serde(rename = "packageName")]
     pub package_name: Option<String>,
-    pub imei: Option<String>,
     #[serde(rename = "deviceCode")]
     pub device_code: Option<String>,
     pub platform: Option<String>,
@@ -66,6 +64,11 @@ pub struct BaseRequestFields {
     #[serde(rename = "subChannel")]
     pub sub_channel: Option<String>,
     pub network: Option<String>,
+
+    // 使用flatten处理未知字段
+    #[serde(flatten)]
+    pub base_extra_fields: HashMap<String, Value>,
+
 }
 
 impl BaseRequestFields {

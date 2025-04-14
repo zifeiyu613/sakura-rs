@@ -24,7 +24,9 @@ pub enum ApiError {
     Database(#[from] sqlx::Error),
 
     #[error("Redis error: {0}")]
-    Redis(#[from] redis::RedisError),
+    Redis(#[from] crate::infrastructure::redis::error::RedisError),
+
+
 
     #[error("RabbitMQ error: {0}")]
     RabbitMq(#[from] lapin::Error),

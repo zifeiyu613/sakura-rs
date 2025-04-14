@@ -63,6 +63,7 @@ pub struct MqConfig {
 }
 
 /// **全局唯一的 `CONFIG_MANAGER`**
+///
 /// 在 Rust 中，RwLockReadGuard 是一种非 Send 类型。RwLock 确保在多线程中只有一个线程可以修改数据，
 /// 但它默认不允许 ReadGuard 类型在线程间传递。这是因为，读取锁在释放之前对数据的持有是不可移动的，也不允许传递。
 

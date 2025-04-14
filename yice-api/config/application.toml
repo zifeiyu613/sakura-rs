@@ -21,7 +21,7 @@ audit_log_level = "DEBUG"
 # ** Redis **
 [redis]
 uri="redis://:HuaJian2019testRedis@srv-redis-uat-io.kaiqi.xin:7001/0"
-pool_max_size=10
+max_size=10
 
 
 # ** MQ **

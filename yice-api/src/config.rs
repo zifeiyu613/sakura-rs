@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 use config::{Environment, File};
 use serde::Deserialize;
 use tracing::info;
@@ -9,7 +10,7 @@ use crate::errors::ApiError;
 pub struct Config {
     // pub server: ServerConfig,
     pub mysql: HashMap<String, DatabaseConfig>,
-    // pub redis: RedisConfig,
+    pub redis: RedisPoolConfig,
     // 其他配置...
 }
 
@@ -20,6 +21,18 @@ pub struct DatabaseConfig {
     pub max_connections: u32,
     pub idle_timeout: u64,
 }
+
+
+/// Redis 连接池配置
+#[derive(Debug, Deserialize, Clone)]
+pub struct RedisPoolConfig {
+    pub uri: String,
+    pub max_size: u32,
+    // pub min_idle: u32,
+    // pub connection_timeout: Duration,
+    // pub idle_timeout: Duration,
+}
+
 
 impl Config {
     pub async fn load() -> Result<Self, ApiError> {

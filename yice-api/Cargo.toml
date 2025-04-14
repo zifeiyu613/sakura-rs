@@ -29,7 +29,7 @@ sea-query-binder = {workspace = true, features = [
     "with-time",
     "runtime-async-std-native-tls",
 ]}
-redis = {workspace = true, features = ["tokio-comp"] }
+redis = {workspace = true, features = ["aio", "tokio-comp", "connection-manager"] }
 
 # 消息队列
 lapin = {workspace = true}  # RabbitMQ 客户端
