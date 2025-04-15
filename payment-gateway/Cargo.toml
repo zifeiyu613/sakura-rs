@@ -1,0 +1,65 @@
+[package]
+name = "payment-gateway"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+# Web框架
+actix-web = {workspace = true}
+actix-rt = "2.8.0"
+
+# 数据库
+sqlx = { workspace = true, features = ["runtime-tokio-rustls", "postgres", "chrono", "uuid", "json", "migrate", "macros"] }
+deadpool-postgres = "0.10.5"
+
+# 序列化/反序列化
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_qs = "0.12"
+
+# 异步运行时
+tokio = { workspace = true, features = ["full"] }
+futures = "0.3"
+
+# 工具库
+uuid = { workspace = true, features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+rust_decimal = { version = "1.30", features = ["serde"] }
+rust_decimal_macros = "1.30"
+async-trait = "0.1.68"
+thiserror = "1.0"
+anyhow = "1.0"
+dotenv = "0.15"
+config = "0.13"
+log = "0.4"
+env_logger = "0.10"
+
+# HTTP客户端
+reqwest = { version = "0.11", features = ["json", "rustls-tls"] }
+
+# 加密
+sha2 = "0.10"
+hmac = "0.12"
+base64 = "0.21"
+rand = "0.8"
+rsa = "0.9"
+hex = "0.4"
+
+
+
+# XML处理(微信支付需要)
+quick-xml = { version = "0.30", features = ["serialize"] }
+
+[dev-dependencies]
+mockall = "0.11"
+tokio-test = "0.4"
+wiremock = "0.5"
+
+[lib]
+name = "payment_gateway"
+path = "src/lib.rs"
+
+[[bin]]
+name = "payment-gateway"
+path = "src/main.rs"

@@ -40,6 +40,9 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/app-enumeta/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/yice-api/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/cards/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/payment-gateway/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/payment-gateway/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/payment-gateway/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

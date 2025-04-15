@@ -18,7 +18,7 @@ serde_json = {workspace = true}
 serde_urlencoded = {workspace = true}
 
 # 数据库
-sqlx = {workspace = true, features = ["runtime-tokio", "tls-rustls-ring-webpki", "mysql", "chrono", "json"] }
+sqlx = {workspace = true, features = ["runtime-tokio", "mysql", "chrono", "json"] }
 redis = {workspace = true, features = ["tokio-comp"] }
 
 # 消息队列
