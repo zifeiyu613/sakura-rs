@@ -38,7 +38,7 @@ impl Config {
     pub async fn load() -> Result<Self, ApiError> {
 
         let config_path = dotenvy::var("CONFIG_PATH").unwrap_or_else(|_| {
-            format!("{}/config/application.toml", env!("CARGO_MANIFEST_DIR"))
+            format!("{}/rconfig/application.toml", env!("CARGO_MANIFEST_DIR"))
         });
 
         info!("Loading configuration from {}", &config_path);
@@ -70,7 +70,7 @@ mod tests {
 
     #[test]
     fn print_cargo_dir() {
-        let assets_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("config");
+        let assets_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("rconfig");
 
         println!("{:?}", assets_dir.join("application.toml"));
     }

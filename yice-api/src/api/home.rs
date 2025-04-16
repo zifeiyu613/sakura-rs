@@ -20,7 +20,7 @@ pub fn routes<S>(state: Arc<AppState>) -> Router<S> {
 async fn handler(State(state): State<Arc<AppState>>,
                  version: Version) -> Html<String> {
     info!("Got a version: {:?}", version);
-    info!("state config: {:?}", state.config.clone());
+    info!("state rconfig: {:?}", state.config.clone());
     Html(format!("received request with version {version:?}"))
 }
 

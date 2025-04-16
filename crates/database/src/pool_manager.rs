@@ -1,4 +1,4 @@
-use config::app_config::{get_config, MysqlConfig};
+use rconfig::app_config::{get_config, MysqlConfig};
 use errors::error::DatabaseError;
 use once_cell::sync::Lazy;
 use sqlx::mysql::MySqlPoolOptions;
@@ -97,7 +97,7 @@ impl PoolManager {
             println!("Loaded mysql pool [{}] success!", db_name);
             return Ok(arc_pool);
         }
-        Err(DatabaseError::ConnectionError(format!("No mysql config found for {}", db_name)))
+        Err(DatabaseError::ConnectionError(format!("No mysql rconfig found for {}", db_name)))
     }
 
     /// **获取 MySQL 连接（自动初始化）**
@@ -146,7 +146,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_pool_manager() -> Result<(), DatabaseError> {
-        let path = "/Users/will/RustroverProjects/sakura/config.toml";
+        let path = "/Users/will/RustroverProjects/sakura/rconfig.toml";
         load_config(Some(path)).expect("L");
 
         let pool = POOL_MANAGER

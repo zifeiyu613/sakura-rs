@@ -94,7 +94,7 @@ impl ServiceManager {
         match &self.config.custom_config {
             Some(path) => cmd.env("APP_CONFIG_PATH", path.as_path()),
             None => {
-                log::warn!("Custom config path not set, using default.");
+                log::warn!("Custom rconfig path not set, using default.");
                 cmd.env("APP_CONFIG_PATH", Path::new("/default/path"))
             }
         };
@@ -158,7 +158,7 @@ impl ServiceManager {
     // 为每个服务实例创建独立的工作目录
     pub(crate) fn prepare_environment(&self) -> Result<(), Error> {
         fs::create_dir_all(&self.config.work_dir)?;
-        // fs::set_permissions(&self.config.work_dir, Permissions::from_mode(0o755))?;
+        // fs::set_permissions(&self.rconfig.work_dir, Permissions::from_mode(0o755))?;
         Ok(())
     }
 

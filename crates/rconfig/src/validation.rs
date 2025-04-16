@@ -112,8 +112,8 @@ impl RequiredFieldsValidator {
                 }
                 if let Some(redis_config) = &config.redis {
                     match path[1] {
-                        // Assume Redis config has fields like host, port, etc.
-                        _ => false, // Implementation depends on your Redis config structure
+                        // Assume Redis rconfig has fields like host, port, etc.
+                        _ => false, // Implementation depends on your Redis rconfig structure
                     }
                 } else {
                     false

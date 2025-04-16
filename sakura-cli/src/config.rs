@@ -26,7 +26,7 @@ impl ServiceConfig {
         let mut config_builder = Config::builder();
 
         // 添加默认配置路径
-        let default_config_path = Path::new("/Users/will/RustroverProjects/sakura/config.toml");
+        let default_config_path = Path::new("/Users/will/RustroverProjects/sakura/rconfig.toml");
         if default_config_path.exists() {
             config_builder = config_builder.add_source(File::from(default_config_path));
         } else {

@@ -111,7 +111,7 @@ mod tests {
 
         struct TestMessageConsumer;
 
-        load_config(Some("/Users/will/RustroverProjects/sakura/api/config.toml")).unwrap();
+        load_config(Some("/Users/will/RustroverProjects/sakura/api/rconfig.toml")).unwrap();
 
         #[async_trait]
         impl RabbitMQConsumer for TestMessageConsumer {

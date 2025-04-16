@@ -16,7 +16,6 @@
       <sourceFolder url="file://$MODULE_DIR$/logs/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/cli/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/common/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/crates/config/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/database/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/errors/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/mq/src" isTestSource="false" />
@@ -43,7 +42,8 @@
       <sourceFolder url="file://$MODULE_DIR$/payment-gateway/examples" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/payment-gateway/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/payment-gateway/tests" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/crates/config/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/rconfig/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/rconfig/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

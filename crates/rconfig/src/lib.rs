@@ -15,7 +15,7 @@
 //! ## 示例
 //!
 //! ```rust
-//! use confighub::{AppConfig, ConfigBuilder};
+//! use rconfig::{AppConfig, ConfigBuilder};
 //!
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     // 基本用法 - 默认加载
@@ -42,6 +42,11 @@ pub use app_config::AppConfig;
 pub use builder::ConfigBuilder;
 pub use error::ConfigError;
 pub use loader::{ConfigLoader, EnvLoader, FileLoader, FileFormat, ArgsLoader, RemoteLoader};
+pub use presets::{database::DatabaseConfig,
+                  service::ServiceConfig,
+                  redis::RedisConfig,
+                  rabbitmq::RabbitMQConfig,
+                  logging::LoggingConfig};
 pub use validation::{ConfigValidator, ValidatorChain, RequiredFieldsValidator, RangeValidator, EnvironmentValidator};
 pub use template::TemplateEngine;
 pub use watcher::{ConfigWatcher, ConfigChangeObserver, LoggingObserver};
@@ -122,7 +127,7 @@ mod tests {
 
         // 创建有效配置
         let valid_config = AppConfig {
-            service: presets::ServiceConfig {
+            service: ServiceConfig {
                 name: "test-app".to_string(),
                 port: 8080,
                 environment: "development".to_string(),
@@ -136,7 +141,7 @@ mod tests {
 
         // 创建无效配置（空名称）
         let invalid_config = AppConfig {
-            service: presets::ServiceConfig {
+            service: ServiceConfig {
                 name: "".to_string(),
                 port: 8080,
                 environment: "development".to_string(),

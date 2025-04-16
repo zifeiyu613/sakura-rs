@@ -160,7 +160,7 @@ async fn main() -> std::io::Result<()> {
             // .wrap(middleware::request_logger_v1::RequestLogger)
             .service(handle_json)
             .configure(config)
-            // .configure(config)
+            // .configure(rconfig)
             .route("/", web::get().to(index))
             .route(
                 "/code",
@@ -216,6 +216,6 @@ async fn count(data: web::Data<AppStateWithCounter>) -> impl Responder {
 }
 
 fn config_scope(cfg: &mut web::ServiceConfig) {
-    cfg.service(web::resource("/config")
+    cfg.service(web::resource("/rconfig")
         .route(web::get().to(||async { HttpResponse::Ok().body("Hello Actix Configuration!") })));
 }

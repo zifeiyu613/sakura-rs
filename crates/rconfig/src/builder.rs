@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use config::{Config, Value, Map};
+use config::{Config, Value, Map, ValueKind};
 
 use crate::{
     AppConfig, ConfigError,
@@ -50,13 +50,13 @@ impl ConfigBuilder {
 
         // 添加基本的服务信息作为默认值
         let mut service_map = Map::new();
-        service_map.insert("name".to_string(), Value::String(service_name));
-        service_map.insert("version".to_string(), Value::String(service_version));
-        service_map.insert("environment".to_string(), Value::String("development".to_string()));
-        service_map.insert("host".to_string(), Value::String("0.0.0.0".to_string()));
-        service_map.insert("port".to_string(), Value::Integer(8080));
+        service_map.insert("name".to_string(), Value::from(service_name));
+        service_map.insert("version".to_string(), Value::from(service_version));
+        service_map.insert("environment".to_string(), Value::from("development".to_string()));
+        service_map.insert("host".to_string(), Value::from("0.0.0.0".to_string()));
+        service_map.insert("port".to_string(), Value::from(8080));
 
-        self.defaults.insert("service".to_string(), Value::Table(service_map));
+        self.defaults.insert("service".to_string(), Value::from(service_map));
 
         // 推断默认配置文件路径
         if self.default_config_path.is_none() {
@@ -97,16 +97,16 @@ impl ConfigBuilder {
                 }
 
                 if !current.contains_key(*part) {
-                    current.insert(part.to_string(), Value::Table(Map::new()));
+                    current.insert(part.to_string(), Value::from(Map::new()));
                 }
 
-                if let Some(Value::Table(ref mut next)) = current.get_mut(*part) {
+                if let Some(Value::from(ref mut next)) = current.get_mut(*part) {
                     current = next;
                 } else {
                     // 已存在但不是Map，覆盖它
                     let new_map = Map::new();
-                    current.insert(part.to_string(), Value::Table(new_map));
-                    if let Some(Value::Table(ref mut next)) = current.get_mut(*part) {
+                    current.insert(part.to_string(), Value::from(new_map));
+                    if let Some(Value::from(ref mut next)) = current.get_mut(*part) {
                         current = next;
                     }
                 }
@@ -272,7 +272,7 @@ impl Default for ConfigBuilder {
     }
 }
 
-/// 将 serde_json::Value 转换为 config::Value
+/// 将 serde_json::Value 转换为 rconfig::Value
 fn convert_serde_value_to_config(value: serde_json::Value) -> Result<Value, ConfigError> {
     match value {
         serde_json::Value::Null => Ok(Value::from(())),

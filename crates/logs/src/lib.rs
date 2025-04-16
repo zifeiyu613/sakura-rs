@@ -6,7 +6,7 @@ use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber::fmt::time::ChronoLocal;
 use tracing_subscriber::fmt::{self, writer::MakeWriterExt};
 use tracing_subscriber::{prelude::*, registry::Registry};
-use config::app_config;
+use rconfig::app_config;
 
 /// 初始化日志系统：设置常规日志和审计日志的输出目标
 pub fn init_logging() {

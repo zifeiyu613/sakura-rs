@@ -38,8 +38,8 @@ pub async fn create_app() -> Result<Router, ApiError> {
         .with_prefix("app:v1:lock:");
 
     // 初始化其他服务...
-    // let redis = init_redis(&config).await?;
-    // let amqp = init_rabbitmq(&config).await?;
+    // let redis = init_redis(&rconfig).await?;
+    // let amqp = init_rabbitmq(&rconfig).await?;
 
     let state = AppState {
         config,

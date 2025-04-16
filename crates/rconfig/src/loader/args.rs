@@ -26,11 +26,11 @@ impl ArgsLoader {
     fn parse_args(&self) -> Result<Map<String, Value>, ConfigError> {
         let app = Command::new("Application")
             .arg(
-                Arg::new("config")
+                Arg::new("rconfig")
                     .short('c')
-                    .long("config")
+                    .long("rconfig")
                     .value_name("FILE")
-                    .help("Sets a custom config file")
+                    .help("Sets a custom rconfig file")
             )
             .arg(
                 Arg::new("set")

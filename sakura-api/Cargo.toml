@@ -20,7 +20,7 @@ tracing = {workspace = true}
 tracing-subscriber = {workspace = true, features = ["chrono", "json"] }
 
 common = {path = "../crates/common"}
-config = {path = "../crates/config"}
+rconfig = {path = "../crates/rconfig" }
 database = {path = "../crates/database"}
 mq = {path = "../crates/mq"}
 redis = {path = "../crates/redis"}

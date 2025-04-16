@@ -66,7 +66,7 @@ enum Commands {
 /// ***usage：***
 /// ```shell
 /// # 启动服务（默认端口 8080）
-/// cargo run -- start --name sakura-api --port 9090 --config setting.toml
+/// cargo run -- start --name sakura-api --port 9090 --rconfig setting.toml
 ///
 /// # 使用环境变量
 /// export WEB_SERVICE_CONFIG=/etc/web_service.toml
@@ -179,7 +179,7 @@ fn get_config_path(config: Option<String>) -> PathBuf {
     } else {
         env::var("WEB_SERVICE_CONFIG")
             .map(PathBuf::from)
-            .unwrap_or_else(|_| PathBuf::from("./config.toml"))
+            .unwrap_or_else(|_| PathBuf::from("./rconfig.toml"))
     }
 }
 
@@ -190,7 +190,7 @@ async fn start_service(name: &str, port: u16, config_path: &PathBuf) -> Result<(
         .arg(format!("./{}", name))
         .arg("--port")
         .arg(port.to_string())
-        .arg("--config")
+        .arg("--rconfig")
         .arg(config_path.to_str().unwrap())
         .arg("&")
         .spawn()?

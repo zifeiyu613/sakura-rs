@@ -18,5 +18,5 @@ async-trait = {workspace = true}
 
 uuid = {workspace = true}
 
-config = {path = "../config"}
+rconfig = {path = "../rconfig" }
 errors = {path = "../errors"}

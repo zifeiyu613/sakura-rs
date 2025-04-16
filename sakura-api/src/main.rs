@@ -18,7 +18,7 @@ pub async fn main() {
     let (port, config_path) = get_command_param();
     // 加载配置文件
     load_config(Some(&config_path))
-        .expect(format!("loading config file: {} failed", &config_path).as_str());
+        .expect(format!("loading rconfig file: {} failed", &config_path).as_str());
     // 初始化日志(也用到了配置文件)
     init_logging();
 
@@ -55,9 +55,9 @@ fn get_command_param() -> (u16, String) {
                 .help("The port to service"),
         )
         .arg(
-            Arg::new("config")
+            Arg::new("rconfig")
                 .short('c')
-                .long("config")
+                .long("rconfig")
                 .value_name("CONFIG")
                 // .action(clap::ArgAction::SetTrue)
                 .help("Config file to use"),
@@ -70,7 +70,7 @@ fn get_command_param() -> (u16, String) {
     let config_path = matches
         .get_one::<String>("config")
         .unwrap_or(&String::from(
-            "/Users/will/RustroverProjects/sakura/sakura-api/config.toml",
+            "/Users/will/RustroverProjects/sakura/sakura-api/rconfig.toml",
         ))
         .clone();
     (*port, config_path)

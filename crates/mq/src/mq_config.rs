@@ -13,13 +13,13 @@ pub struct MqConfig {
     pub pool_max_size: usize,
 }
 
-const DEFAULT_CONFIG_PATH: &str = "config.toml";
+const DEFAULT_CONFIG_PATH: &str = "rconfig.toml";
 
 impl RabbitMQConfig {
 
     /// 从指定路径加载配置文件
     pub fn load_config() -> Self {
-        // 获取项目根目录下的 `config.toml`
+        // 获取项目根目录下的 `rconfig.toml`
         let config_path = env::var("APP_CONFIG_PATH").unwrap_or_else(|_|
             if fs::exists("mq_config.toml").is_ok() {
                 "mq_config.toml".to_string()

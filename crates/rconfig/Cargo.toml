@@ -1,5 +1,5 @@
 [package]
-name = "config"
+name = "rconfig"
 version.workspace = true
 edition.workspace = true
 
@@ -9,13 +9,16 @@ config = { workspace = true}
 serde = { workspace = true, features = ["derive"]}
 
 serde_json = { workspace = true }
+
 toml = {workspace = true}
+
 yaml-rust = {workspace = true}
+
 clap = { workspace = true, features = ["derive"] }
 dotenvy = {workspace = true}
 thiserror = {workspace = true}
 tracing = {workspace = true}
 async-trait = {workspace = true}
-regex = "1.11.1"
+regex = {workspace = true}
 
 

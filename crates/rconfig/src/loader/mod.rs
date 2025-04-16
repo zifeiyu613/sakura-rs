@@ -19,7 +19,7 @@ pub trait ConfigLoader {
     fn load() -> Result<Value, ConfigError>;
 }
 
-/// 将 config::Config 构建器构建为最终的配置Map
+/// 将 rconfig::Config 构建器构建为最终的配置Map
 pub(crate) fn build_config(config: Config) -> Result<Map<String, Value>, ConfigError> {
     config.try_deserialize::<Map<String, Value>>()
         .map_err(|e| ConfigError::Deserialization(e.to_string()))
@@ -91,7 +91,7 @@ pub(crate) fn flatten_map(map: &Map<String, Value>, prefix: &str) -> Vec<(String
     result
 }
 
-/// 将 config::Value 转换为字符串表示
+/// 将 rconfig::Value 转换为字符串表示
 fn value_to_string(value: &Value) -> Option<String> {
     match value {
         Value::Null => Some("null".to_string()),

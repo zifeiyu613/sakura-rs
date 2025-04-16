@@ -195,7 +195,7 @@ payment-service/
 │   │   ├── middleware/       # API中间件
 │   │   ├── routes.rs         # API路由定义
 │   │   └── mod.rs            # API模块导出
-│   ├── config/               # 配置管理
+│   ├── rconfig/               # 配置管理
 │   │   ├── app_config.rs     # 应用配置
 │   │   └── mod.rs            # 配置模块导出
 │   ├── domain/               # 领域模型

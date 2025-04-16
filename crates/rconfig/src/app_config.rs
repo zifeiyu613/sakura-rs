@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::presets::{ServiceConfig, DatabaseConfig, RedisConfig, RabbitMQConfig, LoggingConfig};
+use crate::{ServiceConfig, DatabaseConfig, RedisConfig, RabbitMQConfig, LoggingConfig};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppConfig {

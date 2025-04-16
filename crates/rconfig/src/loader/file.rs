@@ -256,7 +256,7 @@ impl FileLoader {
 impl ConfigLoader for FileLoader {
     fn load() -> Result<config::Value, ConfigError> {
         // 默认尝试加载当前目录下的config文件
-        for path in &["./config.yaml", "./config.toml", "./config.json"] {
+        for path in &["./rconfig.yaml", "./rconfig.toml", "./rconfig.json"] {
             if Path::new(path).exists() {
                 let loader = FileLoader::new(path);
                 let content = loader.read_file()?;

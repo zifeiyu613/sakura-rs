@@ -57,7 +57,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 5. 构建配置并启用热重载
     let config_handle = ConfigBuilder::new()
         .with_default_config()
-        .with_file("./config/config.yaml")
+        .with_file("./rconfig/rconfig.yaml")
         .with_env_prefix("MYAPP")
         .with_cli_args()
         .with_remote("https://config-server.example.com/config/my-service")

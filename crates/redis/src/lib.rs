@@ -32,7 +32,7 @@ mod tests {
         // "#;
         // writeln!(temp_file, "{}", content).expect("Failed to write to temp file");
 
-        load_config(Some("/Users/will/RustroverProjects/sakura/sakura-api/config.toml")).unwrap();
+        load_config(Some("/Users/will/RustroverProjects/sakura/sakura-api/rconfig.toml")).unwrap();
 
         init_redis_pool().await.unwrap();
 
