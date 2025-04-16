@@ -1,9 +1,8 @@
 use std::error::Error;
-use sqlx::PgPool;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 use std::collections::HashMap;
-
+use sqlx::MySqlPool;
 use crate::domain::models::{
     PaymentChannelType, PaymentMethodType, PaymentOrder, PaymentRegion,
     PaymentStatus, PaymentTransaction, RefundOrder
@@ -41,11 +40,11 @@ pub trait RefundOrderRepository: Send + Sync {
 
 // 支付订单仓库实现
 pub struct PaymentOrderRepositoryImpl {
-    pool: PgPool,
+    pool: MySqlPool,
 }
 
 impl PaymentOrderRepositoryImpl {
-    pub fn new(pool: PgPool) -> Self {
+    pub fn new(pool: MySqlPool) -> Self {
         Self { pool }
     }
 }

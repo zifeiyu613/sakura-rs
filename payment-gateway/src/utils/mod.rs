@@ -1,3 +1,3 @@
-mod crypto;
-mod http_client;
-mod error;
+pub mod crypto;
+pub mod error;
+pub mod http_client;

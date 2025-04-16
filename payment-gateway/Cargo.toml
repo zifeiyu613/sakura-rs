@@ -6,55 +6,65 @@ rust-version.workspace = true
 
 [dependencies]
 # Web框架
-actix-web = {workspace = true}
-actix-rt = "2.8.0"
-
-# 数据库
-sqlx = { workspace = true, features = ["runtime-tokio-rustls", "postgres", "chrono", "uuid", "json", "migrate", "macros"] }
-deadpool-postgres = "0.10.5"
+axum = {workspace = true}
+tower = {workspace = true}
+tower-http = { workspace = true, features = ["trace"] }
+hyper = { version = "1.2", features = ["full"] }
+tokio = { version = "1.36", features = ["full"] }
 
 # 序列化/反序列化
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-serde_qs = "0.12"
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+uuid = { workspace = true, features = ["serde", "v4"] }
+time = { workspace = true, features = ["serde"] }
 
-# 异步运行时
-tokio = { workspace = true, features = ["full"] }
-futures = "0.3"
+# 数据库
+sqlx = { workspace = true, features = ["runtime-tokio-rustls", "mysql", "time", "uuid", "json"] }
+redis = { workspace = true, features = ["tokio-comp", "connection-manager"] }
 
-# 工具库
-uuid = { workspace = true, features = ["v4", "serde"] }
-chrono = { version = "0.4", features = ["serde"] }
-rust_decimal = { version = "1.30", features = ["serde"] }
-rust_decimal_macros = "1.30"
-async-trait = "0.1.68"
-thiserror = "1.0"
-anyhow = "1.0"
-dotenv = "0.15"
-config = "0.13"
-log = "0.4"
-env_logger = "0.10"
+# 消息队列
+lapin = {workspace = true}  # RabbitMQ客户端
 
-# HTTP客户端
-reqwest = { version = "0.11", features = ["json", "rustls-tls"] }
+# 日志和监控
+tracing = {workspace = true}
+tracing-subscriber = { workspace = true, features = ["env-filter", "json"] }
+tracing-appender = { workspace = true }
 
-# 加密
-sha2 = "0.10"
+# 配置
+config = { workspace = true }
+dotenvy = {workspace = true}
+
+# 错误处理
+thiserror = {workspace = true}
+anyhow = {workspace = true}
+
+# 异步和并发
+async-trait = {workspace = true}
+futures = {workspace = true}
+tokio-util = {workspace = true}
+
+# 工具
+reqwest = { workspace = true, features = ["json", "rustls-tls"] }
+chrono = { workspace = true, features = ["serde"] }
+rust_decimal = { version = "1.34", features = ["serde"] }
+rust_decimal_macros = "1.34"
 hmac = "0.12"
-base64 = "0.21"
-rand = "0.8"
-rsa = "0.9"
-hex = "0.4"
+sha2 = "0.10"
+base64 = "0.22"
+rand = {workspace = true}
+openssl = "0.10.72"
+serde_urlencoded = "0.7.1"
+futures-lite = "2.6.0"
+regex = "1.11.1"
+generic-array = "1.2.0"
+hex = "0.4.3"
 
 
-
-# XML处理(微信支付需要)
-quick-xml = { version = "0.30", features = ["serialize"] }
-
+# 测试
 [dev-dependencies]
-mockall = "0.11"
-tokio-test = "0.4"
-wiremock = "0.5"
+mockall = {workspace = true}
+rstest = {workspace = true}
+tokio-test = {workspace = true}
 
 [lib]
 name = "payment_gateway"

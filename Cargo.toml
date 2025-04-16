@@ -6,7 +6,7 @@ members = [
     "sakura-api",
     "yice-api",
     "sakura-cli",
-    "nginx-restart-api", "cards", "payment-gateway",
+    "nginx-restart-api", "payment-gateway",
 ]
 
 [workspace.package]
@@ -35,6 +35,7 @@ sqlx = { version = "0.8", features = ["runtime-tokio", "mysql", "chrono"] }
 sea-query = "0.32"
 sea-query-binder = "0.7"
 tokio = { version = "1.44", features = ["full"] }
+tokio-util = { version = "0.7"}
 
 redis = {version = "0.29"}
 bb8 = "0.9"
@@ -54,6 +55,7 @@ once_cell = { version = "1" }
 inventory = {version = "0.3"}
 
 chrono = { version = "0.4", features = ["serde"] }
+time = "0.3"
 
 serde = "1.0"
 serde_json = "1.0"
@@ -99,4 +101,7 @@ darling = "0.20"                                # 简化属性解析, 用于解�
 
 # 开发测试 临时文件
 tempfile = "3"
+mockall = "0.13"
+rstest = "0.25"
+tokio-test = "0.4"
 

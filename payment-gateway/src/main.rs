@@ -1,67 +1,56 @@
-mod domain;
-mod infrastructure;
+use payment_gateway::{
+    api::routes,
+    app_state::AppState,
+    config::AppConfig,
+    infrastructure::{
+        database::init_database,
+        cache::init_redis,
+        messaging::init_rabbitmq,
+        logging::init_logging,
+    },
+};
+use std::net::SocketAddr;
+use std::sync::Arc;
+use tracing::info;
 
-use actix_web::{middleware, web, App, HttpServer};
-use dotenv::dotenv;
-use sqlx::postgres::PgPoolOptions;
-use std::env;
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    // 初始化配置
+    dotenv::dotenv().ok();
+    let config = AppConfig::load()?;
 
-use payment_gateway::interfaces::api;
-use payment_gateway::infrastructure::config::AppState;
-use payment_gateway::infrastructure::database;
+    // 初始化日志
+    init_logging(&config);
 
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    // 加载环境变量  
-    dotenv().ok();
-    env_logger::init();
+    info!("Starting payment service...");
 
-    log::info!("Starting payment gateway server...");
+    // 初始化数据库连接
+    let db_pool = init_database(&config).await?;
 
-    // 创建数据库连接池  
-    let database_url = env::var("DATABASE_URL")
-        .expect("DATABASE_URL must be set");
-    let max_connections = env::var("MAX_DB_CONNECTIONS")
-        .unwrap_or_else(|_| "10".to_string())
-        .parse::<u32>()
-        .expect("Failed to parse MAX_DB_CONNECTIONS");
+    // 初始化Redis客户端
+    let redis_manager = init_redis(&config).await?;
 
-    log::info!("Connecting to database...");
-    let pool = PgPoolOptions::new()
-        .max_connections(max_connections)
-        .connect(&database_url)
-        .await
-        .expect("Failed to create pool");
+    // 初始化RabbitMQ
+    let mq_connection = init_rabbitmq(&config).await?;
 
-    // 数据库迁移  
-    database::run_migrations(&pool).await
-        .expect("Failed to run database migrations");
+    // 创建应用状态
+    let app_state = Arc::new(AppState::new(
+        config.clone(),
+        db_pool,
+        redis_manager,
+        mq_connection,
+    ));
 
-    // 创建应用状态  
-    let app_state = web::Data::new(AppState::new(pool));
+    // 初始化路由
+    let app = routes::create_router(app_state);
 
-    // 获取服务器配置  
-    let host = env::var("HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
-    let port = env::var("PORT")
-        .unwrap_or_else(|_| "8080".to_string())
-        .parse::<u16>()
-        .expect("PORT must be a number");
+    // 启动服务器
+    let addr = SocketAddr::from(([0, 0, 0, 0], config.server.port));
+    info!("Listening on {}", addr);
 
-    log::info!("Starting server on {}:{}", host, port);
+    Server::bind(&addr)
+        .serve(app.into_make_service())
+        .await?;
 
-    // 启动HTTP服务器  
-    HttpServer::new(move || {
-        App::new()
-            .app_data(app_state.clone())
-            .wrap(middleware::Logger::default())
-            .wrap(middleware::Compress::default())
-            .wrap(middleware::NormalizePath::trim())
-            .service(
-                web::scope("/api")
-                    .configure(api::configure_routes)
-            )
-    })
-        .bind((host, port))?
-        .run()
-        .await
+    Ok(())
 }

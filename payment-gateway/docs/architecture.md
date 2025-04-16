@@ -11,7 +11,7 @@
                                            |  
                   +------------------------v--------------------------+  
                   |                                                   |  
-                  |                  支付网关API层                    |  
+                  |                  支付网关API层                      |  
                   |                                                   |  
                   +-+----------------+-------------------+------------+  
                     |                |                   |  
@@ -178,3 +178,55 @@ payment-gateway/
 提供微服务接口便于业务接入
 完善的日志、统计、监控和风控机制
 请详细设计此系统并提供完整代码实现。
+
+
+```shell
+payment-service/
+├── migrations/               # 数据库迁移文件
+├── src/
+│   ├── adapters/             # 支付渠道适配器
+│   │   ├── alipay/           # 支付宝适配器
+│   │   ├── wechat/           # 微信支付适配器
+│   │   ├── unionpay/         # 云闪付适配器
+│   │   ├── international/    # 国际支付适配器
+│   │   └── mod.rs            # 适配器模块导出
+│   ├── api/                  # API 层
+│   │   ├── handlers/         # 请求处理器
+│   │   ├── middleware/       # API中间件
+│   │   ├── routes.rs         # API路由定义
+│   │   └── mod.rs            # API模块导出
+│   ├── config/               # 配置管理
+│   │   ├── app_config.rs     # 应用配置
+│   │   └── mod.rs            # 配置模块导出
+│   ├── domain/               # 领域模型
+│   │   ├── entities/         # 实体定义
+│   │   ├── enums/            # 枚举定义
+│   │   ├── value_objects/    # 值对象
+│   │   └── mod.rs            # 领域模块导出
+│   ├── infrastructure/       # 基础设施
+│   │   ├── cache/            # 缓存访问
+│   │   ├── database/         # 数据库访问
+│   │   ├── messaging/        # 消息队列
+│   │   ├── logging/          # 日志配置
+│   │   └── mod.rs            # 基础设施模块导出
+│   ├── repositories/         # 仓储层
+│   │   ├── order_repo.rs     # 订单仓储
+│   │   ├── transaction_repo.rs # 交易仓储
+│   │   └── mod.rs            # 仓储模块导出
+│   ├── services/             # 服务层
+│   │   ├── payment/          # 支付服务
+│   │   ├── notification/     # 通知服务
+│   │   ├── risk/             # 风控服务
+│   │   └── mod.rs            # 服务模块导出
+│   ├── utils/                # 工具类
+│   │   ├── crypto.rs         # 加密工具
+│   │   ├── errors.rs         # 错误定义
+│   │   ├── validator.rs      # 数据验证
+│   │   └── mod.rs            # 工具模块导出
+│   ├── app_state.rs          # 应用状态
+│   └── main.rs               # 应用入口
+├── .env                      # 环境变量
+├── Cargo.toml                # 项目依赖
+└── README.md                 # 项目说明
+
+```

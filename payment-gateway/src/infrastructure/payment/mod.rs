@@ -1,3 +1,3 @@
-mod wechat_pay;
-mod alipay;
-mod boost_wallet;
+pub mod wechat_pay;
+pub mod alipay;
+pub mod boost_wallet;

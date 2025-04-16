@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  payment_gateway:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/payment
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+      - SERVER_PORT=8080
+      - RUST_ENV=production
+    depends_on:
+      - db
+      - redis
+    restart: always
+
+  db:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=payment
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:6
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
