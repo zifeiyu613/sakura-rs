@@ -43,6 +43,7 @@
       <sourceFolder url="file://$MODULE_DIR$/payment-gateway/examples" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/payment-gateway/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/payment-gateway/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/config/examples" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

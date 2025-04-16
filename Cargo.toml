@@ -46,6 +46,7 @@ deadpool-lapin = "0.12"
 async-trait = "0.1"
 
 toml = "0.8"
+yaml-rust = "0.4"
 clap = "4.5"
 strum = "0.27"
 strum_macros = "0.27"
