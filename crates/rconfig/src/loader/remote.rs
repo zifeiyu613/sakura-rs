@@ -54,7 +54,7 @@ impl RemoteLoader {
     // 从远程URL获取配置内容
     fn fetch_content(&self) -> Result<String, ConfigError> {
         // 这里使用阻塞的HTTP请求，实际应用中可以使用异步HTTP客户端
-        let client = ureq::AgentBuilder::new()
+        let client = reqwest::AgentBuilder::new()
             .timeout_connect(self.timeout)
             .timeout_read(self.timeout)
             .build();

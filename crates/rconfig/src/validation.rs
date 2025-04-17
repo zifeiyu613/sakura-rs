@@ -95,11 +95,7 @@ impl RequiredFieldsValidator {
                 // Check database specific fields
                 if let Some(db_config) = config.database.get(path[1]) {
                     match path[2] {
-                        "driver" => !db_config.driver.is_empty(),
-                        "host" => !db_config.host.is_empty(),
-                        "username" => !db_config.username.is_empty(),
-                        "password" => !db_config.password.is_empty(),
-                        "database" => !db_config.database.is_empty(),
+                        "url" => !db_config.url.is_empty(),
                         _ => false,
                     }
                 } else {
