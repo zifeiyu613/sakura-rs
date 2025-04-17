@@ -17,7 +17,7 @@ use crate::{
 /// 配置构建器，提供流式API来构建和定制配置
 pub struct ConfigBuilder {
     /// 底层config库构建器
-    pub(crate) config: Config,
+    pub(crate) config_builder: config::ConfigBuilder<config::builder::DefaultState>,
     /// 默认配置文件路径
     pub(crate) default_config_path: Option<String>,
     /// 环境变量前缀
@@ -34,7 +34,7 @@ impl ConfigBuilder {
     /// 创建新的配置构建器实例
     pub fn new() -> Self {
         Self {
-            config: Config::default(),
+            config_builder: Config::builder(),
             default_config_path: None,
             env_prefix: None,
             load_cli_args: false,
@@ -61,11 +61,11 @@ impl ConfigBuilder {
         // 推断默认配置文件路径
         if self.default_config_path.is_none() {
             let mut default_paths = vec![
-                "config/config.yaml",
                 "config/config.toml",
+                "config/config.yaml",
                 "config/config.json",
-                "config.yaml",
                 "config.toml",
+                "config.yaml",
                 "config.json",
             ];
 
@@ -88,28 +88,56 @@ impl ConfigBuilder {
         let parts: Vec<&str> = key.split('.').collect();
         if parts.len() == 1 {
             self.defaults.insert(key, value);
-        } else {
-            let mut current = &mut self.defaults;
-            for (i, part) in parts.iter().enumerate() {
-                if i == parts.len() - 1 {
-                    current.insert(part.to_string(), value);
-                    break;
-                }
+            return self;
+        }
 
-                if !current.contains_key(*part) {
-                    current.insert(part.to_string(), Value::from(Map::new()));
-                }
+        // 创建临时的 Config，用于组合嵌套值
+        let mut temp_config = Config::builder();
+        temp_config = temp_config.set_default(key, value)
+            .expect("Failed to set default value");
 
-                if let Some(Value::from(ref mut next)) = current.get_mut(*part) {
-                    current = next;
-                } else {
-                    // 已存在但不是Map，覆盖它
-                    let new_map = Map::new();
-                    current.insert(part.to_string(), Value::from(new_map));
-                    if let Some(Value::from(ref mut next)) = current.get_mut(*part) {
-                        current = next;
+        // 构建并转换为嵌套的 HashMap
+        let temp_built = temp_config.build()
+            .expect("Failed to build temporary config");
+
+        let temp_map: HashMap<String, Value> = temp_built
+            .try_deserialize()
+            .expect("Failed to deserialize config");
+
+        // 将新构建的嵌套结构合并到现有的 defaults 中
+        if let Some(root_value) = temp_map.get(parts[0]) {
+            let root_key = parts[0].to_string();
+
+            if self.defaults.contains_key(&root_key) {
+                // 如果根键已存在，需要合并表格
+                if let Some(existing) = self.defaults.get_mut(&root_key) {
+                    if existing.is_table() && root_value.is_table() {
+                        // 两者都是表格，进行深度合并
+                        let existing_table = existing.clone()
+                            .try_deserialize::<HashMap<String, Value>>()
+                            .expect("Failed to deserialize existing table");
+
+                        let new_table = root_value.clone()
+                            .try_deserialize::<HashMap<String, Value>>()
+                            .expect("Failed to deserialize new table");
+
+                        // 合并表格
+                        let mut merged = existing_table;
+                        for (k, v) in new_table {
+                            merged.insert(k, v);
+                        }
+
+                        // 更新现有值
+                        *existing = Value::try_from(merged)
+                            .expect("Failed to convert merged map to Value");
+                    } else {
+                        // 存在但类型不兼容，直接替换
+                        *existing = root_value.clone();
                     }
                 }
+            } else {
+                // 根键不存在，直接插入
+                self.defaults.insert(root_key, root_value.clone());
             }
         }
 
@@ -119,7 +147,7 @@ impl ConfigBuilder {
     /// 从文件加载配置
     pub fn with_file<P: AsRef<Path>>(mut self, path: P) -> Self {
         let file_loader = FileLoader::new(path.as_ref());
-        self.config = self.config.add_source(file_loader);
+        self.config_builder = self.config_builder.add_source(file_loader);
         self.default_config_path = Some(path.as_ref().to_string_lossy().to_string());
         self
     }
@@ -128,7 +156,7 @@ impl ConfigBuilder {
     pub fn with_file_format<P: AsRef<Path>>(mut self, path: P, format: FileFormat) -> Self {
         let file_loader = FileLoader::new(path.as_ref())
             .with_format(format);
-        self.config = self.config.add_source(file_loader);
+        self.config_builder = self.config_builder.add_source(file_loader);
         self.default_config_path = Some(path.as_ref().to_string_lossy().to_string());
         self
     }
@@ -136,16 +164,15 @@ impl ConfigBuilder {
     /// 从环境变量加载配置
     pub fn with_env(mut self) -> Self {
         let env_loader = EnvLoader::new();
-        self.config = self.config.add_source(env_loader);
+        self.config_builder = self.config_builder.add_source(env_loader);
         self
     }
 
     /// 从环境变量加载配置，指定前缀
     pub fn with_env_prefix<S: Into<String>>(mut self, prefix: S) -> Self {
         let prefix = prefix.into();
-        let env_loader = EnvLoader::new()
-            .with_prefix(&prefix);
-        self.config = self.config.add_source(env_loader);
+        let env_loader = EnvLoader::new(&prefix);
+        self.config_builder = self.config_builder.add_source(env_loader);
         self.env_prefix = Some(prefix);
         self
     }
@@ -153,7 +180,7 @@ impl ConfigBuilder {
     /// 从命令行参数加载配置
     pub fn with_cli_args(mut self) -> Self {
         let args_loader = ArgsLoader::new();
-        self.config = self.config.add_source(args_loader);
+        self.config_builder = self.config_builder.add_source(args_loader);
         self.load_cli_args = true;
         self
     }
@@ -161,7 +188,7 @@ impl ConfigBuilder {
     /// 添加远程配置源
     pub fn with_remote(mut self, url: impl Into<String>) -> Self {
         let remote_loader = RemoteLoader::new(url.into());
-        self.config = self.config.add_source(remote_loader);
+        self.config_builder = self.config_builder.add_source(remote_loader);
         self
     }
 
@@ -173,7 +200,7 @@ impl ConfigBuilder {
     ) -> Self {
         let remote_loader = RemoteLoader::new(url.into())
             .with_auth_token(token.into());
-        self.config = self.config.add_source(remote_loader);
+        self.config_builder = self.config_builder.add_source(remote_loader);
         self
     }
 
@@ -214,7 +241,7 @@ impl ConfigBuilder {
                     let temp_path = format!("{}.processed", path);
                     if std::fs::write(&temp_path, processed).is_ok() {
                         let file_loader = FileLoader::new(&temp_path);
-                        self.config = self.config.add_source(file_loader);
+                        self.config_builder = self.config_builder.add_source(file_loader);
                     }
                 }
             }

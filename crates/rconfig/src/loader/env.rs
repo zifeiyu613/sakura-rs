@@ -1,10 +1,9 @@
-use std::collections::HashMap;
-use std::env;
-use config::{ConfigError as SourceError, Source, Value, Map};
-use async_trait::async_trait;
 use crate::error::ConfigError;
 use crate::loader::ConfigLoader;
+use config::{ConfigError as SourceError, Map, Source, Value};
+use std::env;
 
+#[derive(Debug)]
 pub struct EnvLoader {
     prefix: String,
     separator: String,

@@ -81,7 +81,7 @@ impl RequiredFieldsValidator {
                     "host" => !config.service.host.is_empty(),
                     "port" => true, // Port always has a default
                     "environment" => !config.service.environment.is_empty(),
-                    "version" => config.service.version.is_some(),
+                    "version" => config.service.version.is_empty(),
                     _ => false,
                 }
             },

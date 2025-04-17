@@ -11,7 +11,7 @@ pub use args::ArgsLoader;
 pub use remote::{RemoteLoader, RemoteContentType};
 
 use crate::error::ConfigError;
-use config::{Config, Value, Map};
+use config::{Config, Value, Map, ValueKind};
 
 /// 配置加载器特质，定义从各种源加载配置的通用接口
 pub trait ConfigLoader {
@@ -21,8 +21,7 @@ pub trait ConfigLoader {
 
 /// 将 rconfig::Config 构建器构建为最终的配置Map
 pub(crate) fn build_config(config: Config) -> Result<Map<String, Value>, ConfigError> {
-    config.try_deserialize::<Map<String, Value>>()
-        .map_err(|e| ConfigError::Deserialization(e.to_string()))
+    Ok(config.try_deserialize::<Map<String, Value>>()?)
 }
 
 /// 合并两个配置Map
@@ -92,20 +91,20 @@ pub(crate) fn flatten_map(map: &Map<String, Value>, prefix: &str) -> Vec<(String
 }
 
 /// 将 rconfig::Value 转换为字符串表示
-fn value_to_string(value: &Value) -> Option<String> {
-    match value {
-        Value::Null => Some("null".to_string()),
-        Value::String(s) => Some(s.clone()),
-        Value::Integer(i) => Some(i.to_string()),
-        Value::Float(f) => Some(f.to_string()),
-        Value::Boolean(b) => Some(b.to_string()),
-        Value::Array(arr) => {
+fn value_to_string(value_kind: &ValueKind) -> Option<String> {
+    match value_kind {
+        ValueKind::Nil => Some("null".to_string()),
+        ValueKind::String(s) => Some(s.clone()),
+        ValueKind::I64(i) => Some(i.to_string()),
+        ValueKind::Float(f) => Some(f.to_string()),
+        ValueKind::Boolean(b) => Some(b.to_string()),
+        ValueKind::Array(arr) => {
             let items: Vec<String> = arr.iter()
                 .filter_map(value_to_string)
                 .collect();
             Some(format!("[{}]", items.join(", ")))
         },
-        Value::Table(_) => None, // 表格类型在flatten_map中单独处理
+        ValueKind::Table(_) => None, // 表格类型在flatten_map中单独处理
     }
 }
 
