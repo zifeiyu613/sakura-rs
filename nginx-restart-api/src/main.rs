@@ -20,7 +20,7 @@ struct RestartRequest {
 struct ApiResponse {
     message: String,
     success: bool,
-}
+} 
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
