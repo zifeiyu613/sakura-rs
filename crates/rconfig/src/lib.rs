@@ -17,6 +17,7 @@
 pub mod error;
 pub mod config;
 pub mod presets;
+pub mod extension;
 
 pub use config::AppConfig;
 pub use error::ConfigError;

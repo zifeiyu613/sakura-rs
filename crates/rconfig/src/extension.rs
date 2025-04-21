@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use crate::builder::ConfigBuilder;
 
 pub trait ConfigExtension: serde::Serialize {
     fn key(&self) -> &'static str;
@@ -21,8 +20,3 @@ impl ConfigExtension for PaymentConfig {
 }
 
 // 使扩展可以直接添加到ConfigBuilder
-impl ConfigBuilder {
-    pub fn with_extension_trait<T: ConfigExtension>(self, extension: T) -> Self {
-        self.with_extension(extension.key(), extension)
-    }
-}
