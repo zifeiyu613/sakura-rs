@@ -1,95 +1,49 @@
-use config::{
-    AppConfig, ConfigBuilder, ConfigError,
-    validation::{ValidatorChain, RequiredFieldsValidator, EnvironmentValidator},
-    watcher::{ConfigChangeObserver, LoggingObserver},
-    template::TemplateEngine,
-    extension::PaymentConfig,
-};
-use std::time::Duration;
-
-// 自定义配置变更观察者
-struct DatabaseReconnector;
-
-impl ConfigChangeObserver for DatabaseReconnector {
-    fn on_config_changed(&self, old_config: &AppConfig, new_config: &AppConfig) {
-        // 检查数据库配置是否变更
-        if let (Some(old_db), Some(new_db)) = (old_config.main_database(), new_config.main_database()) {
-            if old_db != new_db {
-                println!("Database configuration changed, reconnecting...");
-                // 在实际应用中，这里会执行数据库重连逻辑
-            }
-        }
-    }
-}
+use rconfig::AppConfig;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // === 基本用法 ===
+    // 加载配置
+    let config = AppConfig::new()
+        .add_default("config/default")
+        .add_environment()
+        .build()?;
 
-    // 1. 简单加载配置
-    let simple_config = ConfigBuilder::default().build()?;
-    println!("Service name: {}", simple_config.service_name());
+    // 使用默认数据库配置（向后兼容方式）
+    let default_db_url = config.database().connection_url()?;
+    println!("默认数据库: {}", default_db_url);
 
-    // === 高级用法 ===
-
-    // 2. 使用模板引擎
-    let mut engine = TemplateEngine::default();
-    engine.set_variable("SERVICE_NAME", "my-awesome-service")
-        .set_variable("ENV", "development")
-        .set_variable("DB_HOST", "localhost")
-        .set_variable("DB_PORT", "5432");
-
-    // 3. 使用验证器
-    let validator = ValidatorChain::default()
-        .add(RequiredFieldsValidator::new()
-            .require("service.name")
-            .require("service.environment")
-            .require("database.main"))
-        .add(EnvironmentValidator::default());
-
-    // 4. 自定义扩展配置
-    let payment_config = PaymentConfig {
-        api_key: "test_key".to_string(),
-        api_secret: "test_secret".to_string(),
-        endpoint: "https://api.payment.com".to_string(),
-        timeout_secs: 30,
-    };
-
-    // 5. 构建配置并启用热重载
-    let config_handle = ConfigBuilder::new()
-        .with_default_config()
-        .with_file("./rconfig/rconfig.yaml")
-        .with_env_prefix("MYAPP")
-        .with_cli_args()
-        .with_remote("https://config-server.example.com/config/my-service")
-        .with_extension_trait(payment_config)
-        .with_template_engine(&engine)
-        .validate(&validator)?
-        .with_hot_reload()?
-        .add_observer(LoggingObserver)
-        .add_observer(DatabaseReconnector)
-        .start();
-
-    // 6. 获取当前配置
-    let config = config_handle.get_config();
-    println!("Service: {} ({})", config.service_name(), config.service.environment);
-
-    if let Some(db) = config.main_database() {
-        println!("Database: {}@{}:{}/{}",
-                 db.username, db.host, db.port, db.database);
+    // 使用多数据源功能获取特定数据库
+    if let Some(read_db) = config.get_database(Some("read")) {
+        let read_db_url = read_db.connection_url()?;
+        println!("读库: {}", read_db_url);
     }
 
-    // 7. 访问自定义配置
-    if let Some(payment: PaymentConfig) = config.get("payment") {
-        println!("Payment API: {}", payment.endpoint);
+    if let Some(analytics_db) = config.get_database(Some("analytics")) {
+        let analytics_db_url = analytics_db.connection_url()?;
+        println!("分析数据库: {}", analytics_db_url);
     }
 
-    // 8. 模拟应用运行，配置监控继续在后台进行
-    println!("Application running. Configuration will be monitored for changes...");
-    std::thread::sleep(Duration::from_secs(300)); // 运行5分钟
+    // 获取所有配置的数据库名称
+    println!("所有配置的数据库: {:?}", config.database_names());
 
-    // 9. 停止配置监控
-    config_handle.stop()?;
-    println!("Application shutting down");
+    // 迭代所有数据库配置
+    for (name, _) in config.databases.iter() {
+        println!("配置了数据库: {}", name);
+    }
 
+    Ok(())
+}
+
+// 自定义配置结构
+#[derive(serde::Deserialize)]
+struct PaymentConfig {
+    gateway: String,
+    api_key: String,
+    timeout: u64,
+}
+
+// 设置日志
+fn setup_logging(log_config: &rconfig::LogConfig) -> Result<(), Box<dyn std::error::Error>> {
+    // 这里使用日志配置初始化日志系统
+    // ...
     Ok(())
 }

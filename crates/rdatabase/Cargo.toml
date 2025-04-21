@@ -1,0 +1,33 @@
+[package]
+name = "rdatabase"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+# 异步运行时
+tokio = { workspace = true, features = ["full"] }
+
+# SQL库
+sqlx = { workspace = true, features = ["runtime-tokio-rustls", "mysql", "postgres", "sqlite", "json", "time", "uuid", "chrono"] }
+
+# 错误处理
+thiserror = {workspace = true}
+
+# 日志
+tracing-subscriber = { workspace = true, optional = true }
+
+# 实用工具
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+# 配置管理
+rconfig = { path = "../rconfig" }
+
+[features]
+default = ["mysql"]
+mysql = ["sqlx/mysql"]
+postgres = ["sqlx/postgres"]
+sqlite = ["sqlx/sqlite"]
+all-databases = ["mysql", "postgres", "sqlite"]
+tracing = ["tracing-subscriber"]

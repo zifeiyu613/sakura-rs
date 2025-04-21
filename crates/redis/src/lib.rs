@@ -13,7 +13,6 @@ pub use redis_locker::{RedisLocker, RedisLock, RedisLockGuard};
 mod tests {
     use crate::redis_manager::{init_redis_pool, RedisPoolError};
     use crate::redis_helper::RedisHelper;
-    use config::app_config::load_config;
     use futures_util::future::join_all;
     use serde_json::Value;
     use std::io::Write;
@@ -32,7 +31,7 @@ mod tests {
         // "#;
         // writeln!(temp_file, "{}", content).expect("Failed to write to temp file");
 
-        load_config(Some("/Users/will/RustroverProjects/sakura/sakura-api/rconfig.toml")).unwrap();
+        // load_config(Some("/Users/will/RustroverProjects/sakura/sakura-api/rconfig.toml")).unwrap();
 
         init_redis_pool().await.unwrap();
 

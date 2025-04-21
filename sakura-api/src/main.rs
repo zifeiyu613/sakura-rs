@@ -7,9 +7,8 @@ use crate::controllers::{
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
 use clap::{Arg, Command};
-use config::app_config::load_config;
-use logs::init_logging;
 use middleware::RequestExtractor;
+use rconfig::config::AppConfigBuilder;
 use sakura_api::{check_health, home};
 
 #[actix_web::main]
@@ -17,10 +16,9 @@ pub async fn main() {
     // 解析命令行参数
     let (port, config_path) = get_command_param();
     // 加载配置文件
-    load_config(Some(&config_path))
-        .expect(format!("loading rconfig file: {} failed", &config_path).as_str());
-    // 初始化日志(也用到了配置文件)
-    init_logging();
+    let app_config = AppConfigBuilder::new().add_default(&config_path).build().unwrap();
+    // 使用配置初始化日志
+    rlog::init_from_config(&app_config).unwrap();
 
     let addrs = ("127.0.0.1", port);
 

@@ -26,6 +26,6 @@ mq = {path = "../crates/mq"}
 redis = {path = "../crates/redis"}
 middleware = {path = "../crates/middleware"}
 sakura-macros = {path = "../crates/macros"}
-logs = {path = "../crates/logs"}
+rlog = {path = "../crates/rlog" }
 
 

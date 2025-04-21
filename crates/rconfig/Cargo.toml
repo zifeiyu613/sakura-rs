@@ -10,15 +10,13 @@ serde = { workspace = true, features = ["derive"]}
 
 serde_json = { workspace = true }
 
-toml = {workspace = true}
-
-yaml-rust = {workspace = true}
-
 clap = { workspace = true, features = ["derive"] }
 dotenvy = {workspace = true}
 thiserror = {workspace = true}
-tracing = {workspace = true}
+tracing = {workspace = true, features = ["log"]}
 async-trait = {workspace = true}
 regex = {workspace = true}
+url = {workspace = true}
+num_cpus = "1.16.0"
 
 

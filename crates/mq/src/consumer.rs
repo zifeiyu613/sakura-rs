@@ -99,7 +99,6 @@ mod tests {
     use super::*;
     use crate::producer::publish_message;
     use serde::{Deserialize, Serialize};
-    use config::app_config::load_config;
 
     #[tokio::test]
     async fn consumer_test() {
@@ -111,8 +110,7 @@ mod tests {
 
         struct TestMessageConsumer;
 
-        load_config(Some("/Users/will/RustroverProjects/sakura/api/rconfig.toml")).unwrap();
-
+   
         #[async_trait]
         impl RabbitMQConsumer for TestMessageConsumer {
             async fn handle_message(

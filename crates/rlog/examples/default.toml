@@ -1,0 +1,24 @@
+[log]
+level = "debug"
+show_module_path = true
+show_line_numbers = true
+format = "text"
+show_target = true
+show_thread_id = false
+async_logging = true
+
+[log.console]
+enabled = true
+use_colors = true
+
+[log.file]
+enabled = true
+path = "logs/app.log"
+rotation = "daily"
+max_size = 100
+max_files = 7
+
+[log.module_levels]
+"sqlx::query" = "info"
+"tower_http::trace" = "debug"
+"hyper::proto" = "warn"

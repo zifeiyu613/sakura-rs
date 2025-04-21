@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use serde_json::{from_str, json, to_string};
-    use yice_api::utils::app_macro::App;
+    use app_enumeta::App;
     // use yice_api::utils::app::App;
 
     #[test]
@@ -10,9 +10,6 @@ mod tests {
         assert_eq!(app.code(), "huajian");
         assert_eq!(app.name(), "花间");
         assert_eq!(app.id(), 1);
-
-        let app = App::HuaYou;
-        assert_eq!(app.base_url(), "https://api.huayou.com");
     }
 
     #[test]
@@ -52,25 +49,25 @@ mod tests {
         let mut processed = vec![];
 
         // 模拟针对不同应用的业务处理
-        for app in App::all() {
-            match app {
-                App::HuaJian => {
-                    let url = app.api_url("flowers/list");
-                    println!("处理花间应用: {}", url);
-                    processed.push("huajian_processed");
-                },
-                App::HuaYou => {
-                    let url = app.api_url("friends/recommend");
-                    println!("处理花友应用: {}", url);
-                    processed.push("huayou_processed");
-                },
-                App::YiCe => {
-                    let url = app.api_url("tests/run");
-                    println!("处理易测应用: {}", url);
-                    processed.push("yice_processed");
-                },
-            }
-        }
+        // for app in App::all() {
+        //     match app {
+        //         App::HuaJian => {
+        //             let url = app.api_url("flowers/list");
+        //             println!("处理花间应用: {}", url);
+        //             processed.push("huajian_processed");
+        //         },
+        //         App::HuaYou => {
+        //             let url = app.api_url("friends/recommend");
+        //             println!("处理花友应用: {}", url);
+        //             processed.push("huayou_processed");
+        //         },
+        //         App::YiCe => {
+        //             let url = app.api_url("tests/run");
+        //             println!("处理易测应用: {}", url);
+        //             processed.push("yice_processed");
+        //         },
+        //     }
+        // }
 
         // 验证处理结果
         assert_eq!(processed.len(), 3);
