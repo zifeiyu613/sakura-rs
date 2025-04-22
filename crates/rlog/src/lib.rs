@@ -30,7 +30,6 @@ struct CustomTime;
 
 impl fmt::time::FormatTime for CustomTime {
     fn format_time(&self, w: &mut fmt::format::Writer<'_>) -> std::fmt::Result {
-        // let local_timer = tracing_subscriber::fmt::time::LocalTime::new().format("[%Y-%m-%d %H:%M:%S%.3f]");
         // 使用 RFC3339 格式
         let now = time::OffsetDateTime::now_local().unwrap_or_else(|_| time::OffsetDateTime::now_utc());
         write!(w, "{}", now.format(&time::format_description::well_known::Rfc3339).unwrap())
@@ -78,9 +77,7 @@ pub fn init(config: LogConfig) -> Result<(), String> {
             Err(e) => return Err(format!("Invalid filter directive '{}': {}", directive, e)),
         }
     }
-
-    // 自定义时间格式化器
-    let timer = CustomTime;
+    
 
     // 存储 WorkerGuard 实例，防止过早丢弃
     let mut guards = Vec::new();
@@ -89,77 +86,77 @@ pub fn init(config: LogConfig) -> Result<(), String> {
     let mut registry = Registry::default()
         .with(filter).with(console_layer());
 
-    if config.to_console {
-        let console_layer = fmt::layer()
-            .json()
-            .with_current_span(true)
-            .with_span_events(FmtSpan::NEW | FmtSpan::CLOSE)
-            .with_writer(std::io::stdout)
-            .with_ansi(config.use_ansi_colors)
-            .with_file(config.show_source_location)
-            .with_line_number(config.show_source_location)
-            .with_target(config.show_target)
-            .with_thread_ids(config.show_thread_id);
-        registry = registry.with(console_layer);
-    }
+    // 自定义时间格式化器
+    let timer = CustomTime;
+    
+    let console_layer = fmt::layer()
+        .json()
+        .with_current_span(true)
+        .with_span_events(FmtSpan::NEW | FmtSpan::CLOSE)
+        .with_writer(std::io::stdout)
+        .with_timer(timer)
+        .with_ansi(config.use_ansi_colors)
+        .with_file(config.show_source_location)
+        .with_line_number(config.show_source_location)
+        .with_target(config.show_target)
+        .with_thread_ids(config.show_thread_id);
     
     
     // 同时配置文件输出（如果需要）
-    if config.to_file {
-        if let Some(file_path) = &config.file_path {
-            let dir = file_path.parent().unwrap_or_else(|| Path::new("."));
-            let file_name = file_path.file_name()
-                .map(|n| n.to_string_lossy().to_string())
-                .unwrap_or_else(|| "app.log".to_string());
-
-            // 确保目录存在
-            if !dir.exists() {
-                std::fs::create_dir_all(dir)
-                    .map_err(|e| format!("Failed to create log directory: {}", e))?;
-            }
-
-            // 解析轮转策略
-            let rotation = match config.rotation.to_lowercase().as_str() {
-                "hourly" => Rotation::HOURLY,
-                "minutely" => Rotation::MINUTELY,
-                "daily" => Rotation::DAILY,
-                _ => Rotation::DAILY, // 默认每日轮转
-            };
-
-            // 创建文件附加器
-            let file_appender = match RollingFileAppender::builder()
-                .rotation(rotation)
-                .filename_prefix(file_name)
-                .max_log_files(config.max_files as usize)
-                .build(dir) {
-                Ok(appender) => appender,
-                Err(e) => return Err(format!("Failed to create log file appender: {}", e)),
-            };
-
-            // 非阻塞写入
-            let (non_blocking, guard) = NonBlocking::new(file_appender);
-            guards.push(guard);
-
-            // 创建文件层
-            let file_layer = fmt::layer()
-                .json()
-                .with_current_span(true)
-                .with_span_events(FmtSpan::NEW | FmtSpan::CLOSE)
-                .with_writer(non_blocking)
-                .with_ansi(config.use_ansi_colors)
-                .with_file(config.show_source_location)
-                .with_line_number(config.show_source_location)
-                .with_target(config.show_target)
-                .with_thread_ids(config.show_thread_id);
-            registry.with(file_layer)
-        } else {
-            return Err("File path not specified for file logging".to_string());
-        }
-    }
+    // if config.to_file {
+    //     if let Some(file_path) = &config.file_path {
+    //         let dir = file_path.parent().unwrap_or_else(|| Path::new("."));
+    //         let file_name = file_path.file_name()
+    //             .map(|n| n.to_string_lossy().to_string())
+    //             .unwrap_or_else(|| "app.log".to_string());
+    // 
+    //         // 确保目录存在
+    //         if !dir.exists() {
+    //             std::fs::create_dir_all(dir)
+    //                 .map_err(|e| format!("Failed to create log directory: {}", e))?;
+    //         }
+    // 
+    //         // 解析轮转策略
+    //         let rotation = match config.rotation.to_lowercase().as_str() {
+    //             "hourly" => Rotation::HOURLY,
+    //             "minutely" => Rotation::MINUTELY,
+    //             "daily" => Rotation::DAILY,
+    //             _ => Rotation::DAILY, // 默认每日轮转
+    //         };
+    // 
+    //         // 创建文件附加器
+    //         let file_appender = match RollingFileAppender::builder()
+    //             .rotation(rotation)
+    //             .filename_prefix(file_name)
+    //             .max_log_files(config.max_files as usize)
+    //             .build(dir) {
+    //             Ok(appender) => appender,
+    //             Err(e) => return Err(format!("Failed to create log file appender: {}", e)),
+    //         };
+    // 
+    //         // 非阻塞写入
+    //         let (non_blocking, guard) = NonBlocking::new(file_appender);
+    //         guards.push(guard);
+    // 
+    //         // 创建文件层
+    //         let file_layer = fmt::layer()
+    //             .json()
+    //             .with_current_span(true)
+    //             .with_span_events(FmtSpan::NEW | FmtSpan::CLOSE)
+    //             .with_writer(non_blocking)
+    //             .with_ansi(config.use_ansi_colors)
+    //             .with_file(config.show_source_location)
+    //             .with_line_number(config.show_source_location)
+    //             .with_target(config.show_target)
+    //             .with_thread_ids(config.show_thread_id);
+    //     } else {
+    //         return Err("File path not specified for file logging".to_string());
+    //     }
+    // }
 
 
     // 设置全局订阅器
-    registry.with(file_layer).init();
+    registry.with(console_layer).init();
 
     // 保存配置和 guards
     let log_state = LogState {
