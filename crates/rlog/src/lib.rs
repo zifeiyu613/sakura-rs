@@ -1,10 +1,7 @@
 //! rlog - 基于 tracing 的日志组件
-//!
-//! 提供简单易用的日志功能，支持控制台和文件输出，
-//! 并支持日志格式化和滚动文件。
 
-use std::collections::HashMap;
 use once_cell::sync::OnceCell;
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
@@ -78,20 +75,14 @@ pub fn init(config: LogConfig) -> Result<(), String> {
         }
     }
     
-
-    // 存储 WorkerGuard 实例，防止过早丢弃
-    let mut guards = Vec::new();
-    
     // 构建订阅器
-    let mut registry = Registry::default()
-        .with(filter).with(console_layer());
+    let registry = Registry::default().with(filter);
 
     // 自定义时间格式化器
     let timer = CustomTime;
     
     let console_layer = fmt::layer()
-        .json()
-        .with_current_span(true)
+        .compact()
         .with_span_events(FmtSpan::NEW | FmtSpan::CLOSE)
         .with_writer(std::io::stdout)
         .with_timer(timer)
@@ -101,78 +92,136 @@ pub fn init(config: LogConfig) -> Result<(), String> {
         .with_target(config.show_target)
         .with_thread_ids(config.show_thread_id);
     
-    
-    let layer1 = create_console_layer::<Registry>();
-    let layer2 = create_fs_layer::<Registry>();
-    
-    let layers = vec![layer1, layer2];
-    
-    registry
-    
-    // 同时配置文件输出（如果需要）
-    // if config.to_file {
-    //     if let Some(file_path) = &config.file_path {
-    //         let dir = file_path.parent().unwrap_or_else(|| Path::new("."));
-    //         let file_name = file_path.file_name()
-    //             .map(|n| n.to_string_lossy().to_string())
-    //             .unwrap_or_else(|| "app.log".to_string());
-    // 
-    //         // 确保目录存在
-    //         if !dir.exists() {
-    //             std::fs::create_dir_all(dir)
-    //                 .map_err(|e| format!("Failed to create log directory: {}", e))?;
-    //         }
-    // 
-    //         // 解析轮转策略
-    //         let rotation = match config.rotation.to_lowercase().as_str() {
-    //             "hourly" => Rotation::HOURLY,
-    //             "minutely" => Rotation::MINUTELY,
-    //             "daily" => Rotation::DAILY,
-    //             _ => Rotation::DAILY, // 默认每日轮转
-    //         };
-    // 
-    //         // 创建文件附加器
-    //         let file_appender = match RollingFileAppender::builder()
-    //             .rotation(rotation)
-    //             .filename_prefix(file_name)
-    //             .max_log_files(config.max_files as usize)
-    //             .build(dir) {
-    //             Ok(appender) => appender,
-    //             Err(e) => return Err(format!("Failed to create log file appender: {}", e)),
-    //         };
-    // 
-    //         // 非阻塞写入
-    //         let (non_blocking, guard) = NonBlocking::new(file_appender);
-    //         guards.push(guard);
-    // 
-    //         // 创建文件层
-    //         let file_layer = fmt::layer()
-    //             .json()
-    //             .with_current_span(true)
-    //             .with_span_events(FmtSpan::NEW | FmtSpan::CLOSE)
-    //             .with_writer(non_blocking)
-    //             .with_ansi(config.use_ansi_colors)
-    //             .with_file(config.show_source_location)
-    //             .with_line_number(config.show_source_location)
-    //             .with_target(config.show_target)
-    //             .with_thread_ids(config.show_thread_id);
-    //     } else {
-    //         return Err("File path not specified for file logging".to_string());
-    //     }
-    // }
-
 
     // 设置全局订阅器
-    registry.with(console_layer).init();
+    // registry.with(console_layer).init();
+ 
+    let subscriber = registry.with(console_layer);
+    if let Err(e) = tracing::subscriber::set_global_default(subscriber) {
+        return Err(format!("Failed to set global subscriber: {}", e));
+    }
 
-    // 保存配置和 guards
+    println!("console 初始化完成");
+
     let log_state = LogState {
         config,
-        _guards: guards,
+        _guards: Vec::new(),
     };
 
     LOGGER.set(Arc::new(Mutex::new(log_state)))
         .map_err(|_| "Failed to set global logger state".to_string())?;
+    
+    Ok(())
+}
+
+
+
+pub fn init_file_log(config: LogConfig) -> Result<(), String> {
+    // 防止重复初始化
+    if LOGGER.get().is_some() {
+        return Err("Logger already initialized".to_string());
+    }
+
+    // 将 log crate 的日志转发到 tracing
+    if let Err(e) = LogTracer::init() {
+        return Err(format!("Failed to initialize LogTracer: {}", e));
+    }
+
+    // 构建基本过滤器
+    let mut filter = match EnvFilter::try_from_default_env() {
+        Ok(filter) => filter,
+        Err(_) => {
+            // 解析全局日志级别
+            let level_str = config.level.to_lowercase();
+            let level = Level::from_str(&level_str)
+                .map_err(|_| format!("Invalid log level: {}", level_str))?;
+            EnvFilter::new(format!("{}", level))
+        }
+    };
+
+    // 添加模块级别过滤器
+    for (module, level) in &config.module_filters {
+        let directive = format!("{}={}", module, level);
+        match directive.parse() {
+            Ok(directive) => filter = filter.add_directive(directive),
+            Err(e) => return Err(format!("Invalid filter directive '{}': {}", directive, e)),
+        }
+    }
+
+
+    // 存储 WorkerGuard 实例，防止过早丢弃
+    let mut guards = Vec::new();
+
+    // 构建订阅器
+    let mut registry = Registry::default().with(filter);
+
+    // 自定义时间格式化器
+    let timer = CustomTime;
+    
+
+    // 同时配置文件输出
+    if let Some(file_path) = &config.file_path {
+        let dir = file_path.parent().unwrap_or_else(|| Path::new("."));
+        let file_name = file_path.file_name()
+            .map(|n| n.to_string_lossy().to_string())
+            .unwrap_or_else(|| "app.log".to_string());
+
+        // 确保目录存在
+        if !dir.exists() {
+            std::fs::create_dir_all(dir)
+                .map_err(|e| format!("Failed to create log directory: {}", e))?;
+        }
+
+        // 解析轮转策略
+        let rotation = match config.rotation.to_lowercase().as_str() {
+            "hourly" => Rotation::HOURLY,
+            "minutely" => Rotation::MINUTELY,
+            "daily" => Rotation::DAILY,
+            _ => Rotation::DAILY, // 默认每日轮转
+        };
+
+        // 创建文件附加器
+        let file_appender = match RollingFileAppender::builder()
+            .rotation(rotation)
+            .filename_prefix(file_name)
+            .max_log_files(config.max_files as usize)
+            .build(dir) {
+            Ok(appender) => appender,
+            Err(e) => return Err(format!("Failed to create log file appender: {}", e)),
+        };
+
+        // 非阻塞写入
+        let (non_blocking, guard) = NonBlocking::new(file_appender);
+        guards.push(guard);
+
+        // 创建文件层
+        let file_layer = fmt::layer()
+            .json()
+            .with_timer(timer)
+            .with_current_span(true)
+            .with_span_events(FmtSpan::NEW | FmtSpan::CLOSE)
+            .with_writer(non_blocking)
+            .with_ansi(config.use_ansi_colors)
+            .with_file(config.show_source_location)
+            .with_line_number(config.show_source_location)
+            .with_target(config.show_target)
+            .with_thread_ids(config.show_thread_id);
+
+        // 设置全局订阅器
+        registry.with(file_layer).init();
+
+        // 保存配置和 guards
+        let log_state = LogState {
+            config,
+            _guards: guards,
+        };
+
+        LOGGER.set(Arc::new(Mutex::new(log_state)))
+            .map_err(|_| "Failed to set global logger state".to_string())?;
+        
+    } else {
+        return Err("File path not specified for file logging".to_string());
+    }
 
     Ok(())
 }
@@ -192,23 +241,6 @@ where
         .boxed()
 }
 
-pub fn create_fs_layer<S>() -> Box<dyn Layer<S> + Send + Sync + 'static>
-where
-    S: Subscriber,
-    for<'a> S: LookupSpan<'a>,
-{
-    // create dir, build appender and timer, etc
-    fmt::layer()
-        .with_writer(file_appender)
-        // .with_timer(timer.clone())
-        .with_thread_ids(true)
-        .with_thread_names(true)
-        .with_target(true)
-        .with_file(true)
-        .with_line_number(true)
-        .with_ansi(false)
-        .boxed()
-}
 
 /// 创建格式化层
 fn create_fmt_layer<W, S>(
@@ -426,6 +458,11 @@ impl LoggerBuilder {
     pub fn init(self) -> Result<(), String> {
         init(self.config)
     }
+
+    pub fn init_file_log(self) -> Result<(), String> {
+        init_file_log(self.config)
+    }
+    
 }
 
 /// 从配置对象初始化
@@ -433,6 +470,7 @@ pub fn from_config(config: LogConfig) -> Result<(), String> {
     init(config)
 }
 
+use tracing::Subscriber;
 // 重新导出 tracing 宏，以便用户可以直接从 rlog 使用
 pub use tracing::{
     debug, error, event, info, instrument,
@@ -440,14 +478,12 @@ pub use tracing::{
     trace, warn,   // 用于更细粒度的跟踪控制
     Level,         // 日志级别类型
 };
-use tracing::instrument::WithSubscriber;
-use tracing::Subscriber;
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber::fmt::format::FmtSpan;
-use tracing_subscriber::fmt::MakeWriter;
 use tracing_subscriber::fmt::time::UtcTime;
 use tracing_subscriber::fmt::writer::MakeWriterExt;
 use tracing_subscriber::registry::LookupSpan;
+
 
 #[cfg(test)]
 mod tests {
@@ -459,14 +495,17 @@ mod tests {
         let config = LogConfig {
             level: "debug".to_string(),
             to_console: true,
+            use_ansi_colors: true,
             ..Default::default()
         };
 
         let result = init(config);
-        assert!(result.is_ok());
+        
 
         info!("Test log message");
         debug!("Debug message");
+
+        assert!(result.is_ok());
     }
 
     #[test]

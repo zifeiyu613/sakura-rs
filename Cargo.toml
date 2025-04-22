@@ -5,7 +5,7 @@ members = [
     "actix-code",
     "sakura-api",
     "yice-api",
-    "nginx-restart-api", "payment-gateway",
+    "nginx-restart-api",
 ]
 
 [workspace.package]
