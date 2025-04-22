@@ -1,5 +1,6 @@
 //! 日志配置
 
+use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use crate::error::Result;
 use super::Validate;
@@ -15,7 +16,11 @@ pub struct LogConfig {
     /// 是否输出到控制台
     #[serde(default = "default_to_console")]
     pub to_console: bool,
-
+    
+    /// 控制台是否使用颜色
+    #[serde(default = "default_to_console")]
+    pub use_ansi_colors: bool,
+    
     /// 是否输出到文件
     #[serde(default)]
     pub to_file: bool,
@@ -39,6 +44,18 @@ pub struct LogConfig {
     /// 保留的日志文件数量
     #[serde(default = "default_max_files")]
     pub max_files: u32,
+    
+    /// 轮转策略 (daily, hourly, minutely, size)
+    pub rotation: String,
+    /// 是否显示时间戳
+    pub show_timestamp: bool,
+    /// 是否显示目标模块
+    pub show_target: bool,
+    /// 是否显示线程ID
+    pub show_thread_id: bool,
+    /// 模块级别过滤器
+    pub module_filters: HashMap<String, String>,
+    
 }
 
 fn default_level() -> String {
@@ -70,12 +87,18 @@ impl Default for LogConfig {
         Self {
             level: default_level(),
             to_console: default_to_console(),
+            use_ansi_colors: false,
             to_file: false,
             file_path: None,
             format: default_format(),
             show_source_location: default_show_source_location(),
             max_file_size: default_max_file_size(),
             max_files: default_max_files(),
+            rotation: "daily".to_string(),
+            show_timestamp: false,
+            show_target: false,
+            show_thread_id: false,
+            module_filters: HashMap::new(),
         }
     }
 }
