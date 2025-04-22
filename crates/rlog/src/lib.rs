@@ -102,6 +102,13 @@ pub fn init(config: LogConfig) -> Result<(), String> {
         .with_thread_ids(config.show_thread_id);
     
     
+    let layer1 = create_console_layer::<Registry>();
+    let layer2 = create_fs_layer::<Registry>();
+    
+    let layers = vec![layer1, layer2];
+    
+    registry
+    
     // 同时配置文件输出（如果需要）
     // if config.to_file {
     //     if let Some(file_path) = &config.file_path {
@@ -171,7 +178,7 @@ pub fn init(config: LogConfig) -> Result<(), String> {
 }
 
 
-fn console_layer<S>() -> Box<dyn Layer<S> + Send + Sync + 'static>
+fn create_console_layer<S>() -> Box<dyn Layer<S> + Send + Sync + 'static>
 where
     S: Subscriber,
     for<'a> S: LookupSpan<'a>,
@@ -185,23 +192,23 @@ where
         .boxed()
 }
 
-// pub fn fs_layer<S>(log_dir: &PathBuf) -> Box<dyn Layer<S> + Send + Sync + 'static>
-// where
-//     S: Subscriber,
-//     for<'a> S: LookupSpan<'a>,
-// {
-//     // create dir, build appender and timer, etc
-//     fmt::layer()
-//         .with_writer(file_appender)
-//         .with_timer(timer.clone())
-//         .with_thread_ids(true)
-//         .with_thread_names(true)
-//         .with_target(true)
-//         .with_file(true)
-//         .with_line_number(true)
-//         .with_ansi(false)
-//         .boxed()
-// }
+pub fn create_fs_layer<S>() -> Box<dyn Layer<S> + Send + Sync + 'static>
+where
+    S: Subscriber,
+    for<'a> S: LookupSpan<'a>,
+{
+    // create dir, build appender and timer, etc
+    fmt::layer()
+        .with_writer(file_appender)
+        // .with_timer(timer.clone())
+        .with_thread_ids(true)
+        .with_thread_names(true)
+        .with_target(true)
+        .with_file(true)
+        .with_line_number(true)
+        .with_ansi(false)
+        .boxed()
+}
 
 /// 创建格式化层
 fn create_fmt_layer<W, S>(
@@ -437,6 +444,7 @@ use tracing::instrument::WithSubscriber;
 use tracing::Subscriber;
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber::fmt::format::FmtSpan;
+use tracing_subscriber::fmt::MakeWriter;
 use tracing_subscriber::fmt::time::UtcTime;
 use tracing_subscriber::fmt::writer::MakeWriterExt;
 use tracing_subscriber::registry::LookupSpan;
