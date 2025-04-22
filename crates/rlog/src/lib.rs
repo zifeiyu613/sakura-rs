@@ -204,14 +204,16 @@ where
 // }
 
 /// 创建格式化层
-fn create_fmt_layer<W>(
+fn create_fmt_layer<W, S>(
     config: &LogConfig,
     writer: W,
     use_ansi: bool,
     timer: CustomTime,
-) -> Box<dyn Layer<Registry> + Send + Sync>
+) -> Box<dyn Layer<S> + Send + Sync + 'static>
 where
     W: for<'a> MakeWriterExt<'a> + Send + Sync + 'static,
+    S: Subscriber,
+    for<'a> S: LookupSpan<'a>,
 {
     match config.format.to_lowercase().as_str() {
         "json" => {
