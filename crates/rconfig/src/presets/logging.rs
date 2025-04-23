@@ -46,12 +46,16 @@ pub struct LogConfig {
     pub max_files: u32,
     
     /// 轮转策略 (daily, hourly, minutely, size)
+    #[serde(default = "default_rotation")]
     pub rotation: String,
     /// 是否显示时间戳
+    #[serde(default)]
     pub show_timestamp: bool,
     /// 是否显示目标模块
+    #[serde(default)]
     pub show_target: bool,
     /// 是否显示线程ID
+    #[serde(default)]
     pub show_thread_id: bool,
     /// 模块级别过滤器
     pub module_filters: HashMap<String, String>,
@@ -80,6 +84,10 @@ fn default_max_file_size() -> u64 {
 
 fn default_max_files() -> u32 {
     5
+}
+
+fn default_rotation() -> String {
+    "daily".to_string()
 }
 
 impl Default for LogConfig {

@@ -1,13 +1,14 @@
 //! 数据库连接池管理模块
 
-use sqlx::AnyPool;
 use std::collections::HashMap;
 use std::sync::Arc;
+use sqlx::mysql::MySqlPoolOptions;
 use tokio::sync::RwLock;
 
 use rconfig::{AppConfig, DatabaseConfig};
 
 use crate::error::{DbError, Result};
+use crate::MySqlPool;
 
 /// 支持的数据库类型
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -77,11 +78,11 @@ impl From<&DatabaseConfig> for PoolOptions {
 /// 数据库池管理器，支持多数据源
 #[derive(Debug, Clone)]
 pub struct DbPool {
-    /// 默认连接池
-    default_pool: AnyPool,
+    // 默认连接池
+    // default_pool: MySqlPool,
 
     /// 命名连接池集合
-    pools: Arc<RwLock<HashMap<String, AnyPool>>>,
+    pools: Arc<RwLock<HashMap<String, MySqlPool>>>,
 
     /// 默认数据库类型
     db_type: DbType,
@@ -118,14 +119,14 @@ impl DbPool {
         };
 
         // 创建默认连接池
-        let db_url = db_config.connection_url()?;
+        // let db_url = db_config.connection_url()?;
         let db_type = DbType::from(db_config.db_type.as_str());
-        let pool_options = PoolOptions::from(db_config);
+        // let pool_options = PoolOptions::from(db_config);
 
-        let default_pool = create_pool(&db_url, &pool_options).await?;
+        // let default_pool = create_pool(&db_url, &pool_options).await?;
 
         Ok(DbPool {
-            default_pool,
+            // default_pool,
             pools: Arc::new(RwLock::new(HashMap::new())),
             db_type,
         })
@@ -186,10 +187,10 @@ impl DbPool {
         Ok(())
     }
 
-    /// 获取默认连接池
-    pub fn conn(&self) -> &AnyPool {
-        &self.default_pool
-    }
+    // /// 获取默认连接池
+    // pub fn conn(&self) -> &MySqlPool {
+    //     &self.default_pool
+    // }
 
     /// 获取指定名称的连接池
     ///
@@ -198,10 +199,10 @@ impl DbPool {
     ///
     /// # Returns
     /// * `Option<&AnyPool>` - 连接池引用，如果不存在则返回None
-    pub async fn get_pool(&self, name: &str) -> Option<AnyPool> {
-        if name == "default" {
-            return Some(self.default_pool.clone());
-        }
+    pub async fn get_pool(&self, name: &str) -> Option<MySqlPool> {
+        // if name == "default" {
+        //     return Some(self.default_pool.clone());
+        // }
 
         let pools = self.pools.read().await;
         pools.get(name).cloned()
@@ -218,7 +219,7 @@ impl DbPool {
     /// # Returns
     /// * `Result<()>` - 检查结果
     pub async fn check_connection(&self) -> Result<()> {
-        self.default_pool.acquire().await?;
+        // self.default_pool.acquire().await?;
         Ok(())
     }
 
@@ -235,8 +236,8 @@ impl DbPool {
 }
 
 /// 创建数据库连接池
-async fn create_pool(url: &str, options: &PoolOptions) -> Result<AnyPool> {
-    let pool = sqlx::any::AnyPoolOptions::new()
+async fn create_pool(url: &str, options: &PoolOptions) -> Result<MySqlPool> {
+    let pool = MySqlPoolOptions::new()
         .min_connections(options.min_connections)
         .max_connections(options.max_connections)
         .acquire_timeout(std::time::Duration::from_secs(options.timeout))

@@ -46,6 +46,9 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/rdatabase/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/rlog/examples" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/rlog/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/huajian/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/huajian/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/huajian/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

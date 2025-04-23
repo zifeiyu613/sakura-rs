@@ -18,7 +18,9 @@ pub async fn main() {
     // 加载配置文件
     let app_config = AppConfigBuilder::new().add_default(&config_path).build().unwrap();
     // 使用配置初始化日志
-    rlog::init_from_config(&app_config).unwrap();
+    if let Some(log) = &app_config.log {
+        rlog::init(log).unwrap();
+    }
 
     let addrs = ("127.0.0.1", port);
 

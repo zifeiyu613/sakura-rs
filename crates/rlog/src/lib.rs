@@ -43,7 +43,7 @@ impl fmt::time::FormatTime for CustomTime {
 /// # Returns
 ///
 /// 初始化结果，成功则返回 Ok(())
-pub fn init(config: LogConfig) -> Result<(), String> {
+pub fn init(config: &LogConfig) -> Result<(), String> {
     // 防止重复初始化
     if LOGGER.get().is_some() {
         return Err("Logger already initialized".to_string());
@@ -104,7 +104,7 @@ pub fn init(config: LogConfig) -> Result<(), String> {
     println!("console 初始化完成");
 
     let log_state = LogState {
-        config,
+        config: config.clone(),
         _guards: Vec::new(),
     };
 
@@ -456,7 +456,7 @@ impl LoggerBuilder {
 
     /// 初始化日志系统
     pub fn init(self) -> Result<(), String> {
-        init(self.config)
+        init(&self.config)
     }
 
     pub fn init_file_log(self) -> Result<(), String> {
@@ -467,14 +467,14 @@ impl LoggerBuilder {
 
 /// 从配置对象初始化
 pub fn from_config(config: LogConfig) -> Result<(), String> {
-    init(config)
+    init(&config)
 }
 
 use tracing::Subscriber;
 // 重新导出 tracing 宏，以便用户可以直接从 rlog 使用
 pub use tracing::{
     debug, error, event, info, instrument,
-    span,    // 用于跟踪函数调用
+    info_span, span,    // 用于跟踪函数调用
     trace, warn,   // 用于更细粒度的跟踪控制
     Level,         // 日志级别类型
 };
@@ -499,7 +499,7 @@ mod tests {
             ..Default::default()
         };
 
-        let result = init(config);
+        let result = init(&config);
         
 
         info!("Test log message");

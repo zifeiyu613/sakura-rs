@@ -13,9 +13,9 @@ static RABBITMQ_POOL: Lazy<Arc<Pool>> = Lazy::new(|| {
     // let rabbit = get_config().unwrap().rabbit;
 
     let cfg = Config {
-        url: Some(rabbit.connection_url().clone()),
+        url: Some(rabbit.unwrap().clone().connection_url()),
         pool: Some(PoolConfig {
-            max_size: rabbit.reconnect_attempts as usize,
+            max_size: 10,
             ..PoolConfig::default()
         }),
         connection_properties: ConnectionProperties::default(),

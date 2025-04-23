@@ -103,8 +103,8 @@ impl RedisPoolManager {
         let config = AppConfigBuilder::default().build()?;
         
         Ok(RedisPoolConfig {
-            uri: config.redis.connection_url().clone(),
-            max_size: config.redis.pool_size,
+            uri: config.redis.unwrap().connection_url().clone(),
+            max_size: 10,
             min_idle: 5,
             connection_timeout: Duration::from_secs(10),
             idle_timeout: Duration::from_secs(300),

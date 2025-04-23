@@ -6,6 +6,7 @@ use config::{Config, Environment, File};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::Path;
+use crate::{LogConfig, RabbitMqConfig, RedisConfig};
 
 /// 应用配置，包含所有预设服务配置
 #[derive(Debug, Deserialize, Clone)]
@@ -25,19 +26,15 @@ pub struct AppConfig {
     /// 多数据源配置
     #[serde(default)]
     pub databases: database::DatabaseSources,
-
-
+    
     /// Redis配置
-    #[serde(default)]
-    pub redis: redis::RedisConfig,
+    pub redis: Option<RedisConfig>,
 
     /// RabbitMQ配置
-    #[serde(default)]
-    pub rabbitmq: rabbitmq::RabbitMqConfig,
+    pub rabbitmq: Option<RabbitMqConfig>,
 
     /// 日志配置
-    #[serde(default)]
-    pub logging: logging::LogConfig,
+    pub log: Option<LogConfig>,
 
     /// 自定义扩展配置
     #[serde(default)]
@@ -78,18 +75,18 @@ impl AppConfig {
     }
 
     /// 获取Redis配置
-    pub fn redis(&self) -> &redis::RedisConfig {
+    pub fn redis(&self) -> &Option<RedisConfig> {
         &self.redis
     }
 
     /// 获取RabbitMQ配置
-    pub fn rabbitmq(&self) -> &rabbitmq::RabbitMqConfig {
+    pub fn rabbitmq(&self) -> &Option<RabbitMqConfig> {
         &self.rabbitmq
     }
 
     /// 获取日志配置
-    pub fn logging(&self) -> &logging::LogConfig {
-        &self.logging
+    pub fn logging(&self) -> &Option<LogConfig> {
+        &self.log
     }
 
     /// 获取扩展配置
@@ -104,11 +101,17 @@ impl AppConfig {
     /// 验证配置是否有效
     pub fn validate(&self) -> Result<()> {
         self.server.validate()?;
-        self.database.validate()?;
+        // self.database.validate()?;
         self.databases.validate()?;
-        self.redis.validate()?;
-        self.rabbitmq.validate()?;
-        self.logging.validate()?;
+        if let Some(redis) = &self.redis {
+            redis.validate()?;
+        }
+        if let Some(rabbitmq) = &self.rabbitmq {
+            rabbitmq.validate()?;
+        };
+        if let Some(log) = &self.log {
+            log.validate()?;
+        }
         Ok(())
     }
 }
@@ -132,6 +135,7 @@ impl AppConfigBuilder {
         // 尝试不同扩展名，使用找到的第一个
         for ext in &["json", "toml", "yaml", "hjson", "ini"] {
             let file_path = format!("{}.{}", path.display(), ext);
+            println!("<{}> default config file path: {}", ext, file_path);
             if Path::new(&file_path).exists() {
                 self.config_builder = self.config_builder
                     .add_source(File::with_name(&file_path).required(false));

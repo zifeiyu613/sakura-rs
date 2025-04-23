@@ -1,0 +1,54 @@
+[package]
+name = "huajian"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+
+rconfig = {path = "../crates/rconfig" }
+rlog = {path = "../crates/rlog" }
+rdatabase = {path = "../crates/rdatabase" }
+app-enumeta = {path = "../crates/app-enumeta"}
+
+crypto-utils = {git = "https://github.com/zifeiyu613/crypto-utils.git", branch = "dev"}
+
+axum = {workspace = true}
+tower = {workspace = true}
+tower-http = {workspace = true, features = ["trace", "cors"]}
+tokio = {workspace = true, features = ["full"] }
+
+
+serde = {workspace = true, features = ["derive"] }
+serde_json = {workspace = true}
+serde_urlencoded = {workspace = true}
+
+# 数据库
+sqlx = {workspace = true, features = ["runtime-tokio-rustls", "mysql", "chrono", "json"] }
+sea-query = {workspace = true}
+sea-query-binder = {workspace = true, features = [
+    "sqlx-mysql",
+    "with-chrono",
+    "with-json",
+    "with-rust_decimal",
+    "with-bigdecimal",
+    "with-uuid",
+    "with-time",
+    "runtime-async-std-native-tls",
+]}
+redis = {workspace = true, features = ["aio", "tokio-comp", "connection-manager"] }
+
+# 消息队列
+lapin = {workspace = true}  # RabbitMQ 客户端
+
+# 工具
+futures = {workspace = true}
+chrono = {workspace = true, features = ["serde"] }
+uuid = {workspace = true, features = ["v4", "serde"] }
+async-trait = {workspace = true}
+validator = {workspace = true, features = ["derive"] }
+reqwest = {workspace = true, features = ["json"]}
+jsonwebtoken = {workspace = true}
+time = {workspace = true}
+
+thiserror = {workspace = true}

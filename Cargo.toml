@@ -5,7 +5,7 @@ members = [
     "actix-code",
     "sakura-api",
     "yice-api",
-    "nginx-restart-api",
+    "nginx-restart-api", "huajian",
 ]
 
 [workspace.package]
@@ -70,6 +70,8 @@ rand = "0.9.0-beta.3"
 
 thiserror = "2.0"
 anyhow = "1"
+
+jsonwebtoken = "9.3"
 
 config = "0.15"
 

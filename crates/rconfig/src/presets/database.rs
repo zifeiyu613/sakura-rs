@@ -196,7 +196,7 @@ impl Validate for DatabaseConfig {
 impl Validate for DatabaseSources {
     fn validate(&self) -> Result<()> {
         // 验证默认数据库配置
-        self.default.validate()?;
+        // self.default.validate()?;
 
         // 验证所有额外数据源
         for (name, config) in &self.sources {
