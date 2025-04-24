@@ -3,7 +3,6 @@ resolver = "2"
 members = [
     "crates/*",
     "yice-api",
-    "huajian",
 ]
 
 [workspace.package]

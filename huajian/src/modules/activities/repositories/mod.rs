@@ -1,1 +1,0 @@
-mod activity_huahua_dao;
