@@ -1,14 +1,15 @@
 //! 数据库连接池管理模块
 
+use sqlx::mysql::MySqlPoolOptions;
 use std::collections::HashMap;
 use std::sync::Arc;
-use sqlx::mysql::MySqlPoolOptions;
 use tokio::sync::RwLock;
-
+use futures::future::{try_join_all, TryFutureExt};
+use tracing::info;
 use rconfig::{AppConfig, DatabaseConfig};
 
-use crate::error::{DbError, Result};
 use crate::MySqlPool;
+use crate::error::{DbError, Result};
 
 /// 支持的数据库类型
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -80,7 +81,6 @@ impl From<&DatabaseConfig> for PoolOptions {
 pub struct DbPool {
     // 默认连接池
     // default_pool: MySqlPool,
-
     /// 命名连接池集合
     pools: Arc<RwLock<HashMap<String, MySqlPool>>>,
 
@@ -114,7 +114,8 @@ impl DbPool {
         let db_config = match source {
             None => &config.database,
             Some("default") => &config.database,
-            Some(name) => config.get_database(Some(name))
+            Some(name) => config
+                .get_database(Some(name))
                 .ok_or_else(|| DbError::SourceNotFound(name.to_string()))?,
         };
 
@@ -167,12 +168,13 @@ impl DbPool {
         {
             let pools = self.pools.read().await;
             if pools.contains_key(source_name) {
-                return Ok(());  // 已存在，无需重复添加
+                return Ok(()); // 已存在，无需重复添加
             }
         }
 
         // 获取数据源配置
-        let db_config = config.get_database(Some(source_name))
+        let db_config = config
+            .get_database(Some(source_name))
             .ok_or_else(|| DbError::SourceNotFound(source_name.to_string()))?;
 
         // 创建连接池
@@ -212,7 +214,6 @@ impl DbPool {
     pub fn db_type(&self) -> DbType {
         self.db_type
     }
-    
 
     /// 检查数据库连接
     ///
@@ -220,6 +221,22 @@ impl DbPool {
     /// * `Result<()>` - 检查结果
     pub async fn check_connection(&self) -> Result<()> {
         // self.default_pool.acquire().await?;
+        let pools = self.pools.read().await;
+        
+        // 为每个池创建一个 future
+        let connection_checks = pools.values().map(|pool| {
+            // 获取连接并立即释放
+            pool.acquire().map_err(|e| {
+                tracing::error!("Failed to connect to database: {}", e);
+                e
+            })
+        });
+
+        // 并发执行所有连接检查
+        try_join_all(connection_checks).await?;
+
+        info!("Checking connection {:?} PASS", pools.keys().collect::<Vec<_>>());
+        
         Ok(())
     }
 
@@ -257,7 +274,9 @@ async fn create_pool(url: &str, options: &PoolOptions) -> Result<MySqlPool> {
     };
 
     // 连接数据库
-    let pool = pool.connect(url).await
+    let pool = pool
+        .connect(url)
+        .await
         .map_err(|e| DbError::ConnectionError(format!("无法连接数据库: {}", e)))?;
 
     Ok(pool)

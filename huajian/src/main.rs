@@ -1,7 +1,7 @@
-use axum::Router;
-use huajian::AppResult;
-use huajian::error::AppError;
+use axum::{Router, middleware};
+use huajian::{AppResult, DbName};
 use huajian::{AppState, modules};
+use huajian::{error::AppError, middleware::decrypted::decrypt};
 use rconfig::AppConfig;
 use rdatabase::DbPool;
 use rlog::info;
@@ -9,23 +9,28 @@ use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> AppResult<()> {
-    let path = format!("{}/config/application-{}", env!("CARGO_MANIFEST_DIR"), "dev");
+    let path = format!(
+        "{}/config/application-{}",
+        env!("CARGO_MANIFEST_DIR"),
+        "dev"
+    );
     println!("Loading configuration from {}", &path);
-    let config = AppConfig::new()
+    let app_config = AppConfig::new()
         .add_default(&path)
         .add_environment()
         .build()?;
 
-    if let Some(log) = &config.log {
-        println!("{:?}", log);
+    if let Some(log) = &app_config.log {
         rlog::init(log).expect("Failed to initialize logger");
     }
-    
+
     // 连接数据库
     info!("Connecting to database...");
-    let db_pool = DbPool::load_all_sources(&config).await?;
-    // let phoenix_pool = db_pool.get_pool(DbName::Phoenix.as_str()).await.unwrap();
-    // let activity_pool = db_pool.get_pool(DbName::Activity.as_str()).await.unwrap();
+    let db_pool = DbPool::load_all_sources(&app_config).await?;
+    let phoenix_pool = db_pool.get_pool(DbName::Phoenix.as_str()).await.unwrap();
+    let activity_pool = db_pool.get_pool(DbName::Activity.as_str()).await.unwrap();
+
+    db_pool.check_connection().await?;
 
     // 连接 Redis
     // info!("Connecting to Redis...");
@@ -40,10 +45,10 @@ async fn main() -> AppResult<()> {
         db: db_pool,
         // redis: std::sync::Arc::new(redis_client),
         // rabbit: std::sync::Arc::new(rabbit_connection),
-        app_config: Arc::new(config.clone()),
+        app_config: Arc::new(app_config.clone()),
     };
     // 启动服务器
-    let addr = format!("{}:{}", &config.server.host, &config.server.port);
+    let addr = format!("{}:{}", &app_config.server.host, &app_config.server.port);
     let listener = tokio::net::TcpListener::bind(&addr)
         .await
         .map_err(|e| AppError::Internal(e.to_string()))?;
@@ -51,9 +56,8 @@ async fn main() -> AppResult<()> {
     // 创建路由
     let routers = create_router(state).await;
 
-    info!("Starting server on {}", &addr);
-    println!("Starting server on {:?}", &addr);
-    
+    info!("🚀 WebServer is running on: {}", &addr);
+
     axum::serve(listener, routers.into_make_service())
         // .with_graceful_shutdown(shutdown_signal())
         .await
@@ -69,6 +73,7 @@ async fn create_router(state: AppState) -> Router {
         // API 版本前缀
         .nest("/api/v1", api_v1_routes())
         .with_state(state)
+        .layer(middleware::from_fn(decrypt))
         .layer(tower_http::trace::TraceLayer::new_for_http())
         .layer(tower_http::cors::CorsLayer::permissive())
 }

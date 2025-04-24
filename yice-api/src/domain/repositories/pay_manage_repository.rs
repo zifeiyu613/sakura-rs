@@ -162,7 +162,7 @@ impl<'a> AppPayQueryBuilder<'a> {
     }
 
     pub async fn execute(self, pool: &Pool<MySql>) -> Result<Vec<AppPayManageRecord>, sqlx::Error> {
-        let mut query = Query::select()
+        let query = Query::select()
             .columns([Asterisk])
             .from(TAppPayManage::Table)
             .apply_if(self.state, |q, v| {

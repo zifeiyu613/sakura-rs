@@ -1,2 +1,3 @@
 pub mod auth;
-mod logging;
+pub mod logging;
+pub mod decrypted;

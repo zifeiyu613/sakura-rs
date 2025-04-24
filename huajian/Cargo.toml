@@ -9,6 +9,7 @@ rust-version.workspace = true
 rconfig = {path = "../crates/rconfig" }
 rlog = {path = "../crates/rlog" }
 rdatabase = {path = "../crates/rdatabase" }
+common = {path = "../crates/common" }
 app-enumeta = {path = "../crates/app-enumeta"}
 
 crypto-utils = {git = "https://github.com/zifeiyu613/crypto-utils.git", branch = "dev"}

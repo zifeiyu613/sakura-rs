@@ -12,17 +12,21 @@ tokio = { workspace = true, features = ["full"] }
 sqlx = { workspace = true, features = ["runtime-tokio-rustls", "mysql", "postgres", "sqlite", "json", "time", "uuid", "chrono"] }
 
 # 错误处理
-thiserror = {workspace = true}
+thiserror = { workspace = true }
 
 # 日志
+tracing = { workspace = true }
 tracing-subscriber = { workspace = true, optional = true }
 
 # 实用工具
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 
+futures = { workspace = true }
+
 # 配置管理
 rconfig = { path = "../rconfig" }
+
 
 [features]
 default = ["mysql"]

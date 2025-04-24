@@ -1,12 +1,11 @@
 pub mod enums;
 pub mod repository;
+mod response;
 
 pub use actix_web::{get, web, App, Either, Error, HttpResponse, HttpServer, Responder};
-use common::response::Response;
 use tracing::instrument::WithSubscriber;
 use tracing_subscriber::prelude::*;
-
-
+use crate::response::Response;
 // /// 初始化日志系统：设置常规日志和审计日志的输出目标
 // pub fn init_logging() {
 //     // 创建每日滚动的文件 appender，用于常规日志

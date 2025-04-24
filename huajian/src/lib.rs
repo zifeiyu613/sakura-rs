@@ -8,4 +8,4 @@ pub mod utils;
 pub use crate::app_state::AppState;
 pub use crate::error::AppResult;
 
-pub use crate::constants::enums::*;
+pub use crate::constants::enums::DbName;

@@ -29,6 +29,9 @@ pub enum AppError {
 
     #[error("Internal server error: {0}")]
     Internal(String),
+
+    #[error("Parsing error: {0}")]
+    Parsing(String),
 }
 
 pub type AppResult<T> = Result<T, AppError>;
