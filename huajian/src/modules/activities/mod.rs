@@ -1,3 +1,8 @@
+pub mod models;
+pub mod repositories;
+pub mod services;
+pub mod handlers;
+
 use axum::{handler, Router};
 use axum::routing::{get, Route};
 use crate::AppState;

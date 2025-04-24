@@ -1,0 +1,29 @@
+# 忽略构建缓存
+target/
+
+# 忽略 git 相关
+.git/
+.gitignore
+
+# 忽略编辑器配置
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 忽略文档
+*.md
+docs/
+
+# 忽略测试数据
+test_data/
+
+# 忽略日志
+*.log
+
+# 忽略本地开发环境
+.env
+.env.local
+
+# 除了示例环境文件
+!.env.example
