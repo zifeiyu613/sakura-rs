@@ -2,10 +2,8 @@
 resolver = "2"
 members = [
     "crates/*",
-    "actix-code",
-    "sakura-api",
     "yice-api",
-    "nginx-restart-api", "huajian",
+    "huajian",
 ]
 
 [workspace.package]
