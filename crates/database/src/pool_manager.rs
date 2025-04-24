@@ -1,5 +1,4 @@
-use config::app_config::{get_config, MysqlConfig};
-use errors::error::DatabaseError;
+use crate::error::DatabaseError;
 use once_cell::sync::Lazy;
 use sqlx::mysql::MySqlPoolOptions;
 use sqlx::pool::PoolConnection;
@@ -7,13 +6,14 @@ use sqlx::{MySql, Pool};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
+use rconfig::{AppConfig, DatabaseConfig};
 
 pub static POOL_MANAGER: Lazy<PoolManager> = Lazy::new(PoolManager::new);
 
 /// **全局数据库连接池管理器**
 pub struct PoolManager {
     mysql_pools: RwLock<HashMap<String, Arc<Pool<MySql>>>>, // 以数据库名称为 key 存储池
-    db_config: RwLock<HashMap<String, MysqlConfig>>,        // 仅供内部管理
+    db_config: RwLock<HashMap<String, DatabaseConfig>>,        // 仅供内部管理
 }
 
 impl PoolManager {
@@ -32,8 +32,10 @@ impl PoolManager {
 
         // 若已经加载过，则不重复加载
         if db_config.is_empty() {
-            let config = get_config().unwrap().mysql;
-            *db_config = config;
+            let app_config = AppConfig::new().build().unwrap().database;
+            let mut map = HashMap::new();
+            map.insert("default".to_string(), app_config);
+            *db_config = map;
         }
     }
 
@@ -85,8 +87,8 @@ impl PoolManager {
             // 4. 创建连接池
             let pool = MySqlPoolOptions::new()
                 .max_connections(db_config_entry.max_connections)
-                .idle_timeout(Duration::from_secs(db_config_entry.idle_timeout))
-                .connect(&db_config_entry.url)
+                .idle_timeout(Duration::from_secs(db_config_entry.timeout))
+                .connect(&db_config_entry.connection_url().unwrap())
                 .await.map_err(|e| DatabaseError::ConnectionError(e.to_string()))?;
 
             let arc_pool = Arc::new(pool);
@@ -97,7 +99,7 @@ impl PoolManager {
             println!("Loaded mysql pool [{}] success!", db_name);
             return Ok(arc_pool);
         }
-        Err(DatabaseError::ConnectionError(format!("No mysql config found for {}", db_name)))
+        Err(DatabaseError::ConnectionError(format!("No mysql rconfig found for {}", db_name)))
     }
 
     /// **获取 MySQL 连接（自动初始化）**
@@ -131,8 +133,8 @@ mod tests {
     use sqlx::Row;
     use strum::IntoEnumIterator;
     use strum_macros::{Display, EnumIter, EnumString, VariantNames};
-    use config::app_config::{load_config, AppConfig};
-    use errors::error::DatabaseError;
+    use rconfig::config::AppConfigBuilder;
+    use crate::error::DatabaseError;
 
     #[derive(
         Debug, Eq, PartialEq, Hash, Clone, Copy, EnumIter, EnumString, VariantNames, Display,
@@ -146,9 +148,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_pool_manager() -> Result<(), DatabaseError> {
-        let path = "/Users/will/RustroverProjects/sakura/config.toml";
-        load_config(Some(path)).expect("L");
-
+        let path = "/Users/will/RustroverProjects/sakura/rconfig.toml";
+        
+        let app_config = AppConfigBuilder::new()
+            .add_default(path)
+            .build().map_err(|e| DatabaseError::ConnectionError(e.to_string()));
+        
         let pool = POOL_MANAGER
             .get_mysql_pool(&DatabaseType::Phoenix.to_string())
             .await?;

@@ -16,7 +16,7 @@ once_cell = { workspace = true }
 
 async-trait = {workspace = true}
 
-uuid = {workspace = true}
+uuid = {workspace = true, features = ["v4"]}
+thiserror = {workspace = true}
 
-config = {path = "../config"}
-errors = {path = "../errors"}
+rconfig = {path = "../rconfig" }

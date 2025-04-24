@@ -1,0 +1,43 @@
+[package]
+name = "rlog"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+
+rconfig = {path = "../rconfig" }
+
+# 日志核心依赖
+tracing = {workspace = true}
+tracing-subscriber = {workspace = true, features = ["env-filter", "json", "time", "registry"] }
+tracing-appender = {workspace = true}
+tracing-log = {workspace = true}
+
+# 日志输出格式化
+time = { workspace = true, features = ["formatting", "macros", "local-offset"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = {workspace = true}
+
+# 异步支持
+tokio = { version = "1.28", features = ["fs", "io-util"], default-features = false }
+futures = {workspace = true}
+
+# 错误处理
+thiserror = {workspace = true}
+
+# 实用工具
+once_cell = {workspace = true}
+chrono = {workspace = true}
+regex = {workspace = true}
+anyhow = {workspace = true}
+
+[features]
+default = ["console", "file"]
+console = []
+file = []
+json = []
+all = ["console", "file", "json"]
+
+
+[dev-dependencies]
+tempfile = "3.19"

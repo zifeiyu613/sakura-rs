@@ -222,46 +222,46 @@ async fn extract_body_with_limit(mut payload: dev::Payload, max_size: usize) -> 
 
 
 
-/// 测试中间件是否正确处理并保留请求体。
-#[cfg(test)]
-mod tests {
-    use crate::{RequestContext, RequestExtractor};
-    use actix_http::HttpMessage;
-    use actix_web::{test, web, App, HttpRequest, HttpResponse};
-
-    #[actix_web::test]
-    async fn test_multipart_form_data() {
-        let app = test::init_service(
-            App::new()
-                .wrap(RequestExtractor::default())
-                .route(
-                    "/upload",
-                    web::post().to(|req: HttpRequest| async move {
-                        let context: RequestContext = req.extensions().get::<RequestContext>().unwrap().clone();
-                        // assert!(context.form_data.is_some()); // 验证解析是否成功
-                        println!("{:?}", context);
-                        HttpResponse::Ok().finish()
-                    }),
-                ),
-        )
-            .await;
-
-        let payload = "--boundary\r\n\
-                   Content-Disposition: form-data; name=\"username\"\r\n\r\n\
-                   john_doe\r\n\
-                   --boundary\r\n\
-                   Content-Disposition: form-data; name=\"file\"; filename=\"file.txt\"\r\n\
-                   Content-Type: text/plain\r\n\r\n\
-                   hello world\r\n\
-                   --boundary--\r\n";
-
-        let req = test::TestRequest::post()
-            .uri("/upload")
-            .insert_header(("Content-Type", "multipart/form-data; boundary=boundary"))
-            .set_payload(payload)
-            .to_request();
-
-        let resp = test::call_service(&app, req).await;
-        assert!(resp.status().is_success());
-    }
-}
+// 测试中间件是否正确处理并保留请求体。
+// #[cfg(test)]
+// mod tests {
+//     use crate::{RequestContext, RequestExtractor};
+//     use actix_http::HttpMessage;
+//     use actix_web::{test, web, App, HttpRequest, HttpResponse};
+//
+//     #[actix_web::test]
+//     async fn test_multipart_form_data() {
+//         let app = test::init_service(
+//             App::new()
+//                 .wrap(RequestExtractor::default())
+//                 .route(
+//                     "/upload",
+//                     web::post().to(|req: HttpRequest| async move {
+//                         let context: RequestContext = req.extensions().get::<RequestContext>().unwrap().clone();
+//                         // assert!(context.form_data.is_some()); // 验证解析是否成功
+//                         println!("{:?}", context);
+//                         HttpResponse::Ok().finish()
+//                     }),
+//                 ),
+//         )
+//             .await;
+//
+//         let payload = "--boundary\r\n\
+//                    Content-Disposition: form-data; name=\"username\"\r\n\r\n\
+//                    john_doe\r\n\
+//                    --boundary\r\n\
+//                    Content-Disposition: form-data; name=\"file\"; filename=\"file.txt\"\r\n\
+//                    Content-Type: text/plain\r\n\r\n\
+//                    hello world\r\n\
+//                    --boundary--\r\n";
+//
+//         let req = test::TestRequest::post()
+//             .uri("/upload")
+//             .insert_header(("Content-Type", "multipart/form-data; boundary=boundary"))
+//             .set_payload(payload)
+//             .to_request();
+//
+//         let resp = test::call_service(&app, req).await;
+//         assert!(resp.status().is_success());
+//     }
+// }

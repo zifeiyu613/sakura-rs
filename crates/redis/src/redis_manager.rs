@@ -3,7 +3,8 @@ use bb8::{Pool, RunError};
 use bb8_redis::RedisConnectionManager;
 use once_cell::sync::OnceCell;
 use tracing::info;
-use config::app_config::get_config;
+use rconfig::{AppConfig, ConfigError};
+use rconfig::config::AppConfigBuilder;
 
 /// Redis 连接池错误类型
 #[derive(Debug, thiserror::Error)]
@@ -11,6 +12,9 @@ pub enum RedisPoolError {
 
     #[error("Failed to initialize Redis pool: {0}")]
     InitializationError(String),
+
+    #[error("Redis operator error: {0}")]
+    OperatorError(#[from] redis::RedisError),
 
     #[error("Pool timed out")]
     PoolTimeout,
@@ -21,9 +25,6 @@ pub enum RedisPoolError {
     #[error("Runtime error: {0}")]
     RuntimeError(String),
 
-    #[error("Redis operator error: {0}")]
-    OperatorError(#[from] bb8_redis::redis::RedisError),
-
     #[error("User code error: {0}")]
     UserError(String),
 
@@ -33,6 +34,11 @@ pub enum RedisPoolError {
 }
 
 
+impl From<ConfigError> for RedisPoolError {
+    fn from(e: ConfigError) -> Self {
+        RedisPoolError::Custom(e.to_string())
+    }
+}
 
 // 实现从 RunError 到 RedisPoolError 的转换
 impl From<RunError<redis::RedisError>> for RedisPoolError {
@@ -92,11 +98,13 @@ impl RedisPoolManager {
 
     /// 获取连接池配置
     fn get_pool_config() -> Result<RedisPoolConfig, RedisPoolError> {
-        let config = get_config().map_err(|e| RedisPoolError::InitializationError(e.to_string()))?;
+        // let config = get_config().map_err(|e| RedisPoolError::InitializationError(e.to_string()))?;
 
+        let config = AppConfigBuilder::default().build()?;
+        
         Ok(RedisPoolConfig {
-            uri: config.redis.uri,
-            max_size: config.redis.pool_max_size as u32,
+            uri: config.redis.unwrap().connection_url().clone(),
+            max_size: 10,
             min_idle: 5,
             connection_timeout: Duration::from_secs(10),
             idle_timeout: Duration::from_secs(300),

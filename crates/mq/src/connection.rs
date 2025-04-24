@@ -3,18 +3,19 @@ use deadpool_lapin::{Config, Pool, PoolConfig, Runtime};
 use lapin::ConnectionProperties;
 use once_cell::sync::Lazy;
 use std::sync::Arc;
-use config::app_config::get_config;
+use rconfig::config::AppConfigBuilder;
 
 /// **全局 RabbitMQ 连接池**
 /// 连接字符串，格式为：amqp://[用户名][:密码@][主机][:端口][/虚拟机]
 static RABBITMQ_POOL: Lazy<Arc<Pool>> = Lazy::new(|| {
 
-    let rabbit = get_config().unwrap().rabbit;
+    let rabbit = AppConfigBuilder::default().build().unwrap().rabbitmq;
+    // let rabbit = get_config().unwrap().rabbit;
 
     let cfg = Config {
-        url: Some(rabbit.uri.clone()),
+        url: Some(rabbit.unwrap().clone().connection_url()),
         pool: Some(PoolConfig {
-            max_size: rabbit.pool_max_size,
+            max_size: 10,
             ..PoolConfig::default()
         }),
         connection_properties: ConnectionProperties::default(),

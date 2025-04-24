@@ -1,0 +1,42 @@
+# 默认/主数据库 (向后兼容写法)
+[database]
+db_type = "mysql"
+host = "main-db.example.com"
+port = 3306
+username = "main_user"
+password = "main_pass"
+database = "main_db"
+max_connections = 30
+
+# 多数据源配置 - 可选默认覆盖
+[databases.default]
+# 如果这里有配置，它会替代上面的database配置
+
+# 读库（用于查询）
+[databases.sources.read]
+db_type = "mysql"
+host = "read-db.example.com"
+port = 3306
+username = "read_user"
+password = "read_pass"
+database = "main_db"
+max_connections = 50
+
+# 分析数据库
+[databases.sources.analytics]
+db_type = "postgres"
+host = "analytics-db.example.com"
+port = 5432
+username = "analytics_user"
+password = "analytics_pass"
+database = "analytics"
+min_connections = 2
+max_connections = 10
+
+# 其他配置...
+[server]
+host = "0.0.0.0"
+port = 8080
+
+[redis]
+host = "redis.example.com"

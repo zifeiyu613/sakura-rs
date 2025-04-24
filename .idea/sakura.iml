@@ -16,13 +16,11 @@
       <sourceFolder url="file://$MODULE_DIR$/logs/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/cli/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/common/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/crates/config/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/database/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/errors/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/mq/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/redis/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/web-core/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/crates/logs/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/macros/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/macros/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/crates/middleware/src" isTestSource="false" />
@@ -33,7 +31,23 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/tools/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/a-flash/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/axum-code/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ssl-automator/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/axum-code/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/nginx-restart-api/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/app-enumeta/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/app-enumeta/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/yice-api/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/cards/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/payment-gateway/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/payment-gateway/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/payment-gateway/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/rconfig/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/rconfig/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/rdatabase/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/rlog/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/rlog/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/huajian/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/huajian/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/huajian/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>

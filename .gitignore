@@ -1,5 +1,7 @@
 /target
+/tmp
 .idea/**
 
 *.iml
+/Cargo.lock
 
