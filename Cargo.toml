@@ -2,17 +2,18 @@
 resolver = "2"
 members = [
     "crates/*",
+    "payment-service",
     "yice-api",
 ]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.87"
 
 [workspace.dependencies]
-actix-web = "4.10"
-actix-http = "3.10"
+actix-web = "4"
+actix-http = "3"
 
 futures = "0.3"
 futures-util = "0.3"
@@ -30,11 +31,11 @@ sea-query-binder = "0.7"
 tokio = { version = "1.44" }
 tokio-util = { version = "0.7"}
 
-redis = {version = "0.29"}
+redis = {version = "0.32"}
 bb8 = "0.9"
-bb8-redis = "0.21"
+bb8-redis = "0.23"
 bb8-lapin = "0.6.0"
-lapin = "2.5"
+lapin = "3"
 deadpool-lapin = "0.12"
 async-trait = "0.1"
 
@@ -85,7 +86,7 @@ log = "0.4"
 env_logger = "0.11"
 
 # 模板
-handlebars = "4.5"
+handlebars = "6.3"
 
 uuid = { version = "1.0" }
 url = "2.5"
@@ -93,6 +94,7 @@ regex = "1.11"
 validator = "0.20"
 
 reqwest = "0.12"
+urlencoding = "2.1"
 
 # Rust 中的 宏（macro）开发生态系统的核心组件，主要用于 自定义派生宏（procedural macro） 和 代码生成
 syn = { version = "2.0", features = ["full"] }  # 解析 Rust 源代码为抽象语法树（AST）用于读取和解析宏的输入代码
@@ -105,4 +107,5 @@ tempfile = "3"
 mockall = "0.13"
 rstest = "0.25"
 tokio-test = "0.4"
+httpmock = "0.7.0"
 

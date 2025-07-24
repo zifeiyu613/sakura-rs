@@ -1,8 +1,8 @@
 // use crate::mq_config::RabbitMQConfig;
 use deadpool_lapin::{Config, Pool, PoolConfig, Runtime};
-use lapin::ConnectionProperties;
 use once_cell::sync::Lazy;
 use std::sync::Arc;
+use deadpool_lapin::lapin::ConnectionProperties;
 use rconfig::config::AppConfigBuilder;
 
 /// **全局 RabbitMQ 连接池**

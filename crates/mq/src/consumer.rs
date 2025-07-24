@@ -1,9 +1,10 @@
 use crate::connection::get_rabbitmq_connection;
 use crate::error::MessageQueueError;
 use async_trait::async_trait;
+use deadpool_lapin::lapin::types::FieldTable;
 use futures::StreamExt;
 use lapin::options::BasicConsumeOptions;
-use lapin::types::FieldTable;
+// use lapin::types::FieldTable;
 use lapin::ExchangeKind;
 
 /// **定义通用消费者接口**
@@ -20,7 +21,7 @@ pub async fn start_consumer(
     consumer: impl RabbitMQConsumer + Send + Sync + 'static,
 ) -> Result<(), MessageQueueError> {
     let connection = get_rabbitmq_connection().await;
-    let channel = connection.create_channel().await?;
+    let channel = connection.create_channel().await.map_err(|e|MessageQueueError::GenericError(e.to_string()))?;
 
     // 声明队列
     let queue = channel.queue_declare(

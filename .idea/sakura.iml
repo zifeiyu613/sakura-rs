@@ -49,6 +49,8 @@
       <sourceFolder url="file://$MODULE_DIR$/huajian/examples" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/huajian/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/huajian/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/payment-service/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/payment-service/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
